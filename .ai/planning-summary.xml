@@ -1,0 +1,224 @@
+<conversation_summary>
+
+<decisions>
+1. Target audience: People who want to learn new things but don't know how to make good flashcards
+2. AI service/model will be abstracted and interchangeable (not tied to specific provider)
+3. AI-generated flashcards will be shown as candidates with "Accept" or "Discard" buttons; only accepted flashcards will be saved
+4. Text input constraints: minimum 1,000 characters, maximum 10,000 characters, generating at least 5 flashcards per input
+5. Spaced repetition will use a free, open-source library
+6. Authentication: simple username + password (no email required)
+7. No email verification for user registration in MVP
+8. This is a free hobby project with no monetization plans
+9. Development timeline: 2 weeks, single developer working after hours (requires very simple implementation)
+10. MVP will support plain text only (no images, formatting, or rich media)
+11. System will track whether each flashcard was AI-generated or manually created to calculate success metrics
+12. Flashcards will be organized into decks; one user can have many decks
+13. Study session: users will review one card at a time until all cards with due date of today or earlier are reviewed
+14. AI generation failures will display simple error message: "Generation failed, please try again"
+15. Basic input validation and XSS protection will be provided by the framework; Row Level Security (RLS) will be implemented
+16. Only generated flashcards will be stored, not the original input text
+</decisions>
+
+<matched_recommendations>
+1. **Target Audience Definition**: Define specific user personas to guide feature prioritization - matched with decision to target people who struggle with creating effective flashcards
+2. **AI Cost Control**: Implement rate limits for AI generations - relevant given the free/hobby nature of the project
+3. **Acceptance Metrics**: Define acceptance as explicit user action (Accept button) - directly implemented in the solution
+4. **Input Limits**: Set clear boundaries (2,000 words/5-15 flashcards) - adjusted to 1,000-10,000 characters with minimum 5 flashcards
+5. **Spaced Repetition Algorithm**: Use well-tested algorithm like SM-2 with transparent "Next review" indicator - open-source library chosen
+6. **Authentication Simplicity**: Email/password with optional OAuth - simplified to username/password only for MVP
+7. **Free Tier Strategy**: Launch with generous free tier to drive adoption - entire product is free
+8. **MVP Timeline**: 3-month development cycle with clear milestones - compressed to 2 weeks with single developer, requiring extreme simplicity
+9. **Content Support**: Start with text-only flashcards supporting basic markdown - pure plain text for MVP
+10. **Feedback Collection**: Implement tracking to measure AI flashcard acceptance rates - built into Accept/Discard mechanism
+11. **Skip Email Verification**: Users can start immediately after creating account - implemented in MVP
+12. **Error Handling**: Simple error messages for AI failures without complex retry logic - implemented as recommended
+13. **Study Session Flow**: Simple list of due cards with basic review interface - one card at a time until all due cards reviewed
+14. **Minimal Validation**: Basic validation with framework-provided XSS protection - implemented as recommended
+15. **Simplified Data Model**: Store only essential data (generated flashcards, not original text) - implemented as recommended
+</matched_recommendations>
+
+<prd_planning_summary>
+
+## Product Overview
+A web-based flashcard application designed to help people who want to learn new things but struggle with creating effective flashcards. The MVP focuses on AI-assisted flashcard generation with a simple, streamlined user experience achievable within a 2-week development timeline by a single developer.
+
+## Main Functional Requirements
+
+### 1. User Management
+- Username and password authentication (no email verification)
+- Simple account creation flow with immediate access
+- Row Level Security (RLS) for data protection
+- Basic input validation and framework-provided XSS protection
+
+### 2. Deck Management
+- Users can create multiple decks to organize flashcards
+- Each deck contains multiple flashcards
+- Basic CRUD operations: create, view, edit, and delete decks
+
+### 3. AI-Powered Flashcard Generation
+- Users paste text (1,000-10,000 characters) into input field
+- AI generates at least 5 flashcard candidates from the input
+- AI service is abstracted and interchangeable (not tied to specific provider)
+- Generated flashcards presented with "Accept" or "Discard" buttons
+- Only accepted flashcards are saved to user's deck
+- System tracks flashcard origin (AI-generated vs. manually created)
+- Failed generations display simple error: "Generation failed, please try again"
+- Original input text is not stored
+
+### 4. Manual Flashcard Creation
+- Users can create flashcards manually
+- Plain text only (no formatting, images, or rich media in MVP)
+- Basic fields: question and answer
+- Flashcards stored in selected deck
+
+### 5. Flashcard Management
+- View all flashcards within a deck
+- Edit existing flashcards (question and answer)
+- Delete flashcards
+- Track creation method (AI vs. manual)
+
+### 6. Spaced Repetition Study System
+- Integration with free, open-source spaced repetition library
+- Study session reviews one card at a time
+- Users review all cards with due date of today or earlier
+- Review flow:
+  - Display question
+  - User reveals answer
+  - User rates difficulty (implementation details TBD)
+  - Algorithm calculates next review date
+  - Card disappears from today's review queue
+- System tracks review history for each flashcard
+
+## Key User Stories
+
+**Story 1: New User Onboarding**
+- As a new user, I want to create an account with just a username and password, so I can start using the app immediately without email verification
+
+**Story 2: AI-Assisted Learning**
+- As a learner, I want to paste study material and have flashcards automatically generated, so I don't have to spend time creating them myself
+
+**Story 3: Flashcard Curation**
+- As a user reviewing AI-generated flashcards, I want to accept good flashcards and discard poor ones, so my deck contains only quality study material
+
+**Story 4: Manual Flashcard Creation**
+- As a user, I want to manually create flashcards for specific concepts, so I can supplement AI-generated content with my own insights
+
+**Story 5: Deck Organization**
+- As a user studying multiple topics, I want to organize my flashcards into separate decks, so I can focus on one subject at a time
+
+**Story 6: Daily Review**
+- As a learner, I want to review flashcards one at a time based on a spaced repetition schedule, so I can efficiently retain information over time
+
+**Story 7: Flashcard Management**
+- As a user, I want to edit or delete flashcards, so I can refine my study materials as my understanding evolves
+
+## Usage Paths
+
+**Path 1: First-Time User Creating AI Flashcards**
+1. User creates account (username + password)
+2. User creates a new deck (e.g., "Biology 101")
+3. User pastes study text (1,000-10,000 characters)
+4. System generates at least 5 flashcard candidates
+5. User reviews each candidate, clicking "Accept" or "Discard"
+6. Accepted flashcards are saved to the deck
+7. User begins first review session
+
+**Path 2: Daily Study Session**
+1. User logs in
+2. User selects a deck
+3. System displays first card due for review (question only)
+4. User attempts to recall answer
+5. User clicks to reveal answer
+6. User rates their recall (difficulty buttons)
+7. System calculates next review date
+8. Process repeats for all due cards
+9. Session ends when no more cards are due
+
+**Path 3: Manual Flashcard Creation**
+1. User navigates to a deck
+2. User clicks "Create New Flashcard"
+3. User enters question and answer (plain text)
+4. User saves flashcard
+5. Flashcard is added to deck and spaced repetition schedule
+
+**Path 4: Managing Existing Flashcards**
+1. User views flashcards in a deck
+2. User identifies a flashcard to modify
+3. User edits question or answer
+4. User saves changes, or
+5. User deletes flashcard if no longer needed
+
+## Success Criteria and Measurement
+
+### Primary Success Metrics
+1. **AI Acceptance Rate**: 75% of AI-generated flashcards are accepted by users
+   - Measurement: Track Accept vs. Discard button clicks
+   - Formula: (Accepted Flashcards / Total Generated Flashcards) × 100
+
+2. **AI Usage Rate**: Users create 75% of flashcards using AI generation
+   - Measurement: Track `is_ai_generated` flag on each flashcard
+   - Formula: (AI-Generated Flashcards / Total Flashcards) × 100
+
+### Data Collection Requirements
+- Store flashcard origin (AI vs. manual) in database
+- Log Accept/Discard actions during AI generation flow
+- Track total flashcards created per user
+- Calculate metrics through simple database queries
+
+### Validation Approach
+- Run metrics calculations after initial user testing
+- Evaluate if 75% thresholds are realistic based on actual usage
+- Adjust targets if needed based on real-world data
+
+## Technical Constraints
+
+### Development Constraints
+- Single developer working after hours
+- 2-week development timeline (extremely tight)
+- Must keep implementation very simple
+- Technology stack decisions deferred to implementation phase
+
+### MVP Scope Limitations
+- Web-only (no mobile applications)
+- Plain text only (no rich formatting, images, or media)
+- No email verification or password reset functionality
+- No deck sharing between users
+- No import of external formats (PDF, DOCX, etc.)
+- No integrations with other platforms
+- No custom/advanced spaced repetition algorithms
+- No AI prompt customization by users
+- Original input text not stored (only generated flashcards)
+
+### Security & Validation
+- Framework-provided XSS protection
+- Row Level Security (RLS) for data isolation
+- Basic input validation (character limits, non-empty fields)
+- No complex error handling or retry mechanisms
+
+## Design Principles
+- Simplicity over features (due to 2-week constraint)
+- Clear, straightforward user flows
+- Minimal UI complexity
+- Focus on core value proposition: AI-assisted flashcard creation and spaced repetition
+
+</prd_planning_summary>
+
+<unresolved_issues>
+1. **AI Provider Selection**: While abstraction is planned, specific AI service/model and API integration approach need to be determined during implementation
+2. **Spaced Repetition Library**: Specific open-source library needs to be selected (e.g., SM-2 implementation)
+3. **Difficulty Rating Options**: Number and labels of difficulty buttons in review session (e.g., Again/Hard/Good/Easy) not specified
+4. **Technology Stack**: Frontend framework, backend language, database, and hosting platform to be determined
+5. **AI Prompt Engineering**: Exact prompt template for flashcard generation needs to be designed and tested
+6. **Input Text Preprocessing**: How to handle edge cases (e.g., very short paragraphs, bullet lists, code snippets) when generating flashcards
+7. **Deck Capacity Limits**: Whether to impose limits on flashcards per deck or decks per user (relevant for free hobby project storage costs)
+8. **Error Recovery**: User experience when AI service is completely unavailable (fallback to manual creation only?)
+9. **Password Security**: Password hashing algorithm and strength requirements not specified
+10. **Data Migration Strategy**: No clear plan for schema changes if product evolves beyond MVP
+11. **Analytics Implementation**: How to implement and view success metrics (dashboard, database queries, third-party service?)
+12. **User Feedback Mechanism**: No way for users to report issues or suggest improvements in MVP
+13. **Search/Filter Functionality**: Whether users can search within decks or filter flashcards by various criteria
+14. **Minimum Flashcard Quality**: No validation that AI-generated flashcards meet minimum quality standards before presentation
+15. **Session Timeout/Security**: User session management and automatic logout behavior not defined
+</unresolved_issues>
+
+</conversation_summary>
