@@ -20,6 +20,10 @@ db-reset:
 db-migrate:
 	npx supabase migration up
 
+db-gen-types:
+	mkdir -p src/db
+	npx supabase gen types typescript --local > src/db/database.types.ts
+
 # Show available commands
 help:
 	@echo "Available commands:"
