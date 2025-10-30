@@ -30,6 +30,7 @@ People who want to learn new things but lack the knowledge or time to create eff
 ### Success Metrics
 
 The MVP aims to achieve:
+
 - **75% AI Flashcard Acceptance Rate**: Percentage of AI-generated flashcards that users accept
 - **75% AI Usage Rate**: Percentage of total flashcards created using AI generation
 
@@ -74,26 +75,31 @@ The MVP aims to achieve:
 ### Installation
 
 1. Clone the repository:
+
    ```bash
    git clone https://github.com/yourusername/10xcards.git
    cd 10xcards
    ```
 
 2. Install dependencies:
+
    ```bash
    npm install
    ```
 
 3. Set up environment variables:
+
    ```bash
    cp .env.example .env
    ```
+
    Then edit `.env` with your configuration:
    - `SUPABASE_URL`: Your Supabase project URL
    - `SUPABASE_KEY`: Your Supabase anon/public key
    - Additional AI service credentials as needed
 
 4. Start the development server:
+
    ```bash
    npm run dev
    ```
@@ -126,6 +132,7 @@ npm run format       # Format code with Prettier
 ### Pre-commit Hooks
 
 The project uses Husky and lint-staged to automatically run linters on staged files before commits:
+
 - TypeScript, TSX, and Astro files: ESLint with auto-fix
 - JSON, CSS, and Markdown files: Prettier formatting
 

@@ -1,5 +1,5 @@
 import type { supabaseClient } from "@/db/supabase.client";
-import type { DeckDTO, DeckListQueryParams, PaginatedResponseDTO } from "@/types";
+import type { CreateDeckCommand, DeckDTO, DeckListQueryParams, PaginatedResponseDTO } from "@/types";
 
 /**
  * Custom error for deck-related operations
@@ -16,6 +16,87 @@ export class DeckServiceError extends Error {
  * Provides methods for CRUD operations and deck statistics
  */
 export class DeckService {
+  /**
+   * Create a new deck for a user
+   *
+   * Creates a new deck owned by the authenticated user with initial statistics (0 flashcards, 0 cards due).
+   * Enforces unique deck names per user via database constraint.
+   *
+   * @param supabase - Authenticated Supabase client from context.locals
+   * @param userId - ID of authenticated user
+   * @param command - CreateDeckCommand containing the deck name
+   * @returns DeckDTO with computed statistics
+   * @throws Error with 'DECK_NAME_EXISTS' message if duplicate deck name
+   * @throws Error with 'INVALID_DECK_NAME' message if name violates check constraint
+   * @throws DeckServiceError if database operation fails
+   */
+  async createDeck(supabase: typeof supabaseClient, userId: string, command: CreateDeckCommand): Promise<DeckDTO> {
+    try {
+      // ========================================================================
+      // Step 1: Insert deck into database
+      // ========================================================================
+      const { data: deck, error } = await supabase
+        .from("decks")
+        .insert({
+          user_id: userId,
+          name: command.name,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        })
+        .select("id, name, created_at, updated_at")
+        .single();
+
+      // ========================================================================
+      // Step 2: Handle database constraint violations
+      // ========================================================================
+      // Handle unique constraint violation (user_id, name)
+      if (error?.code === "23505") {
+        throw new Error("DECK_NAME_EXISTS");
+      }
+
+      // Handle check constraint violation (trim(name) != '')
+      if (error?.code === "23514") {
+        throw new Error("INVALID_DECK_NAME");
+      }
+
+      if (error) {
+        throw new DeckServiceError(`Failed to create deck: ${error.message}`);
+      }
+
+      if (!deck) {
+        throw new DeckServiceError("No deck returned after creation");
+      }
+
+      // ========================================================================
+      // Step 3: Return DTO with computed statistics
+      // ========================================================================
+      // For new decks, all statistics are zero/null (no flashcards yet)
+      return {
+        id: deck.id,
+        name: deck.name,
+        created_at: deck.created_at,
+        updated_at: deck.updated_at,
+        total_flashcards: 0,
+        cards_due: 0,
+        next_review_date: null,
+      };
+    } catch (error) {
+      // Re-throw known errors (DECK_NAME_EXISTS, INVALID_DECK_NAME)
+      if (error instanceof Error && (error.message === "DECK_NAME_EXISTS" || error.message === "INVALID_DECK_NAME")) {
+        throw error;
+      }
+
+      // Re-throw DeckServiceError
+      if (error instanceof DeckServiceError) {
+        throw error;
+      }
+
+      // Log and wrap unexpected errors
+      console.error("Unexpected error in createDeck:", error);
+      throw new DeckServiceError("Failed to create deck");
+    }
+  }
+
   /**
    * List all decks for a user with pagination and statistics
    *

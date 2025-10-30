@@ -5,12 +5,15 @@
 The AI Flashcard Learning Platform is a web-based application designed to help learners create effective study materials through AI-assisted flashcard generation combined with proven spaced repetition techniques. The platform addresses the common challenge faced by learners who want to study efficiently but struggle with creating high-quality flashcards.
 
 ### Target Audience
+
 People who want to learn new things but lack the knowledge or time to create effective flashcards manually.
 
 ### Core Value Proposition
+
 Transform study materials into optimized flashcards in seconds using AI, while maintaining full control over content quality through an accept/discard review system.
 
 ### Key Features
+
 - AI-powered flashcard generation from pasted text
 - Manual flashcard creation for supplemental content
 - Deck-based organization system
@@ -19,11 +22,13 @@ Transform study materials into optimized flashcards in seconds using AI, while m
 - Full flashcard lifecycle management (create, view, edit, delete)
 
 ### Technical Scope
+
 This is a minimum viable product (MVP) designed for 2-week development by a single developer working after hours. The platform will be web-only, supporting plain text content without rich formatting or media attachments.
 
 ## 2. User Problem
 
 ### Problem Statement
+
 Learners who want to use flashcards for effective studying face significant barriers:
 
 1. Creating effective flashcards requires skill and knowledge of learning principles
@@ -33,10 +38,13 @@ Learners who want to use flashcards for effective studying face significant barr
 5. Without proper spacing algorithms, review sessions are inefficient
 
 ### Current Alternatives and Limitations
+
 Existing flashcard applications like Anki and Quizlet require users to manually create all content, which is a significant time investment. While some tools offer community-shared decks, these may not align with individual learning materials or curriculum requirements. AI writing assistants can help generate flashcards but require switching between multiple applications and manual copying.
 
 ### Target User Persona
+
 Students, professionals, and lifelong learners who:
+
 - Have study materials (textbooks, lecture notes, articles) they want to learn from
 - Recognize the value of spaced repetition for retention
 - Want to minimize time spent on flashcard creation
@@ -181,6 +189,7 @@ Students, professionals, and lifelong learners who:
 ### 5.1 Authentication and Account Management
 
 #### US-001: User Registration
+
 - ID: US-001
 - Title: Create New User Account
 - Description: As a new user, I want to create an account using a username and password so that I can start using the flashcard application immediately.
@@ -197,6 +206,7 @@ Students, professionals, and lifelong learners who:
   - System displays error message if password doesn't meet requirements
 
 #### US-002: User Login
+
 - ID: US-002
 - Title: Login to Existing Account
 - Description: As a returning user, I want to log in with my username and password so that I can access my flashcard decks and study.
@@ -210,6 +220,7 @@ Students, professionals, and lifelong learners who:
   - System does not reveal whether username or password was incorrect (security best practice)
 
 #### US-003: User Logout
+
 - ID: US-003
 - Title: Logout from Account
 - Description: As a logged-in user, I want to log out of my account so that my data remains secure when I'm finished using the application.
@@ -221,6 +232,7 @@ Students, professionals, and lifelong learners who:
   - Session data is cleared from browser
 
 #### US-004: Persistent Authentication
+
 - ID: US-004
 - Title: Maintain User Session
 - Description: As a user, I want to remain logged in when I return to the application so that I don't have to log in every time.
@@ -233,6 +245,7 @@ Students, professionals, and lifelong learners who:
 ### 5.2 Deck Management
 
 #### US-005: Create New Deck
+
 - ID: US-005
 - Title: Create a New Flashcard Deck
 - Description: As a user, I want to create a new deck with a custom name so that I can organize my flashcards by subject or topic.
@@ -248,6 +261,7 @@ Students, professionals, and lifelong learners who:
   - Deck names must to be unique within a user's account
 
 #### US-006: View Deck List
+
 - ID: US-006
 - Title: View All My Decks
 - Description: As a user, I want to see a list of all my decks so that I can choose which deck to study or manage.
@@ -260,6 +274,7 @@ Students, professionals, and lifelong learners who:
   - User can access each deck's detailed view by clicking on deck
 
 #### US-007: Edit Deck Name
+
 - ID: US-007
 - Title: Rename Existing Deck
 - Description: As a user, I want to edit the name of an existing deck so that I can update organization as my learning evolves.
@@ -273,6 +288,7 @@ Students, professionals, and lifelong learners who:
   - All flashcards remain associated with deck after name change
 
 #### US-008: Delete Deck
+
 - ID: US-008
 - Title: Delete Unwanted Deck
 - Description: As a user, I want to delete a deck I no longer need so that my interface remains organized.
@@ -286,6 +302,7 @@ Students, professionals, and lifelong learners who:
   - All flashcards within deleted deck are removed from database
 
 #### US-009: View Empty Deck
+
 - ID: US-009
 - Title: View Deck with No Flashcards
 - Description: As a user, I want to see appropriate messaging when viewing a deck that contains no flashcards so that I understand the deck's status.
@@ -299,6 +316,7 @@ Students, professionals, and lifelong learners who:
 ### 5.3 AI-Powered Flashcard Generation
 
 #### US-010: Submit Text for AI Generation
+
 - ID: US-010
 - Title: Generate Flashcards from Study Material
 - Description: As a user, I want to paste my study material and have AI generate flashcards so that I can save time creating study materials.
@@ -316,6 +334,7 @@ Students, professionals, and lifelong learners who:
   - User receives feedback when generation is complete
 
 #### US-011: Review AI-Generated Flashcards
+
 - ID: US-011
 - Title: Accept or Discard Generated Flashcard Candidates
 - Description: As a user, I want to review AI-generated flashcard candidates and choose which ones to keep so that I maintain quality control over my study materials.
@@ -334,6 +353,7 @@ Students, professionals, and lifelong learners who:
   - User can return to deck view after reviewing all candidates
 
 #### US-012: Handle AI Generation Failure
+
 - ID: US-012
 - Title: Receive Error Message When AI Generation Fails
 - Description: As a user, I want to see a clear error message when AI generation fails so that I know to try again or use manual creation.
@@ -347,6 +367,7 @@ Students, professionals, and lifelong learners who:
   - Original input text is not stored if generation fails
 
 #### US-013: Track AI Generation Success
+
 - ID: US-013
 - Title: System Tracks AI Flashcard Acceptance
 - Description: As the system, I need to track which flashcards were AI-generated and whether they were accepted so that we can measure product success.
@@ -362,6 +383,7 @@ Students, professionals, and lifelong learners who:
 ### 5.4 Manual Flashcard Creation
 
 #### US-014: Create Flashcard Manually
+
 - ID: US-014
 - Title: Manually Create a Flashcard
 - Description: As a user, I want to manually create a flashcard with a front and back so that I can add specific content or supplement AI-generated cards.
@@ -379,6 +401,7 @@ Students, professionals, and lifelong learners who:
   - New flashcard is added to spaced repetition schedule
 
 #### US-015: Create Flashcard with Invalid Input
+
 - ID: US-015
 - Title: Handle Empty Fields in Manual Creation
 - Description: As a user, I want to receive validation feedback when I try to create a flashcard with empty fields so that I understand what's required.
@@ -393,6 +416,7 @@ Students, professionals, and lifelong learners who:
 ### 5.5 Flashcard Management
 
 #### US-016: View All Flashcards in Deck
+
 - ID: US-016
 - Title: Browse Flashcards Within a Deck
 - Description: As a user, I want to view all flashcards in a deck so that I can review my study material and manage individual cards.
@@ -406,6 +430,7 @@ Students, professionals, and lifelong learners who:
   - List includes options to edit or delete each flashcard
 
 #### US-017: Edit Existing Flashcard
+
 - ID: US-017
 - Title: Modify Flashcard Content
 - Description: As a user, I want to edit a flashcard's front or back so that I can correct mistakes or refine the content as my understanding improves.
@@ -422,6 +447,7 @@ Students, professionals, and lifelong learners who:
   - System tracks last modified date
 
 #### US-018: Delete Flashcard
+
 - ID: US-018
 - Title: Remove Unwanted Flashcard
 - Description: As a user, I want to delete a flashcard from my deck so that I can remove content I no longer need to study.
@@ -435,6 +461,7 @@ Students, professionals, and lifelong learners who:
   - Future review schedule updates to exclude deleted card
 
 #### US-019: View Flashcard Metadata
+
 - ID: US-019
 - Title: See Flashcard Creation Details
 - Description: As a user, I want to see whether a flashcard was AI-generated or manually created so that I can understand my deck composition.
@@ -448,6 +475,7 @@ Students, professionals, and lifelong learners who:
 ### 5.6 Spaced Repetition Study System
 
 #### US-020: Start Study Session
+
 - ID: US-020
 - Title: Begin Reviewing Due Flashcards
 - Description: As a user, I want to start a study session for a specific deck so that I can review flashcards that are due today.
@@ -461,6 +489,7 @@ Students, professionals, and lifelong learners who:
   - Cards appear one at a time during session
 
 #### US-021: Review Flashcard During Session
+
 - ID: US-021
 - Title: Study Individual Flashcard
 - Description: As a user, I want to see a flashcard's front, attempt recall, reveal the back, and rate my performance so that the system can schedule my next review.
@@ -476,6 +505,7 @@ Students, professionals, and lifelong learners who:
   - User progresses through all due cards one by one
 
 #### US-022: Complete Study Session
+
 - ID: US-022
 - Title: Finish Reviewing All Due Cards
 - Description: As a user, I want to see a completion message when I've reviewed all due flashcards so that I know my study session is complete.
@@ -488,6 +518,7 @@ Students, professionals, and lifelong learners who:
   - User can start new session when more cards become due
 
 #### US-023: Study Session with No Due Cards
+
 - ID: US-023
 - Title: Handle Deck with No Cards Due
 - Description: As a user, I want to see appropriate messaging when no flashcards are due for review so that I understand my study status.
@@ -499,6 +530,7 @@ Students, professionals, and lifelong learners who:
   - User can navigate back to deck list
 
 #### US-024: Track Review History
+
 - ID: US-024
 - Title: Record Flashcard Review Performance
 - Description: As the system, I need to track each flashcard review so that the spaced repetition algorithm can calculate optimal next review dates.
@@ -513,6 +545,7 @@ Students, professionals, and lifelong learners who:
 ### 5.7 Error Handling and Edge Cases
 
 #### US-025: Handle Database Connection Error
+
 - ID: US-025
 - Title: Display Error When System Cannot Access Data
 - Description: As a user, I want to see a clear error message when the system cannot access my data so that I understand there's a technical issue.
@@ -524,6 +557,7 @@ Students, professionals, and lifelong learners who:
   - User session remains valid if possible
 
 #### US-026: Handle Unauthorized Access
+
 - ID: US-026
 - Title: Prevent Access to Other Users' Data
 - Description: As a user, I want my data to be protected so that other users cannot access or modify my flashcards and decks.
@@ -535,6 +569,7 @@ Students, professionals, and lifelong learners who:
   - All database queries filter by current user ID
 
 #### US-027: Handle Session Expiration
+
 - ID: US-027
 - Title: Redirect to Login After Session Expires
 - Description: As a user, I want to be redirected to login page when my session expires so that I can securely log back in.
@@ -552,6 +587,7 @@ Students, professionals, and lifelong learners who:
 The MVP success will be measured using two key metrics that directly reflect the product's value proposition:
 
 #### Metric 1: AI Flashcard Acceptance Rate
+
 - Definition: Percentage of AI-generated flashcards that users accept (vs. discard) during the review process
 - Target: 75% acceptance rate
 - Formula: (Number of Accepted AI Flashcards / Total Number of AI-Generated Flashcards) × 100
@@ -562,6 +598,7 @@ The MVP success will be measured using two key metrics that directly reflect the
 - Significance: Indicates quality of AI-generated content and validates core product value
 
 #### Metric 2: AI Generation Usage Rate
+
 - Definition: Percentage of total flashcards in the system that were created via AI generation
 - Target: 75% of all flashcards created using AI
 - Formula: (Number of AI-Generated Flashcards / Total Number of Flashcards) × 100
@@ -575,6 +612,7 @@ The MVP success will be measured using two key metrics that directly reflect the
 ### 6.2 Data Collection Implementation
 
 #### Required Database Fields
+
 - Flashcard table must include:
   - is_ai_generated (boolean): true for AI-generated, false for manual
   - created_at (timestamp): flashcard creation date
@@ -582,6 +620,7 @@ The MVP success will be measured using two key metrics that directly reflect the
   - deck_id (foreign key): associates flashcard with deck
 
 #### Tracking Events
+
 - Accept button click: Save flashcard with is_ai_generated = true
 - Discard button click: Log event but do not save flashcard
 - Manual flashcard creation: Save flashcard with is_ai_generated = false
@@ -589,12 +628,14 @@ The MVP success will be measured using two key metrics that directly reflect the
 ### 6.3 Metrics Evaluation Process
 
 #### Analysis Approach
+
 - Calculate metrics using database queries
 - Compare actual rates against 75% targets
 - Segment data by user cohorts if sufficient sample size
 - Identify patterns in acceptance/rejection of specific flashcard types
 
 #### Success Criteria Validation
+
 - If both metrics exceed 75%, core product hypotheses are validated
 - If AI acceptance rate is low, investigate AI generation quality
 - If AI usage rate is low, investigate user experience friction points
@@ -603,6 +644,7 @@ The MVP success will be measured using two key metrics that directly reflect the
 ### 6.4 Secondary Indicators (Informational Only)
 
 While not formal success criteria, these metrics provide additional context:
+
 - User retention: Percentage of users who return after first session
 - Average study sessions per user per week
 - Average flashcards per deck
@@ -612,12 +654,14 @@ While not formal success criteria, these metrics provide additional context:
 ### 6.5 Measurement Tools
 
 #### Implementation Options
+
 - Direct database queries for metric calculation
 - Simple admin dashboard showing key metrics
 - Scheduled reports generated from database
 - Third-party analytics tool integration (if implemented)
 
 #### Reporting Frequency
+
 - Weekly review during first month post-launch
 - Monthly review thereafter
 - Ad-hoc queries available for product decisions

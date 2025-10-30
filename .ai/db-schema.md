@@ -13,6 +13,7 @@ Supabase's built-in authentication table. Not created by migrations.
 **Purpose:** Stores user authentication credentials and metadata.
 
 **Key Fields:**
+
 - `id uuid` - Primary key, referenced by all user-owned tables
 - Managed entirely by Supabase authentication system
 
@@ -36,6 +37,7 @@ create table decks (
 ```
 
 **Columns:**
+
 - `id` - UUID primary key, auto-generated
 - `user_id` - Foreign key to auth.users, owner of the deck
 - `name` - Deck name (max 255 characters, must not be empty/whitespace-only)
@@ -43,6 +45,7 @@ create table decks (
 - `updated_at` - Timestamp when deck was last modified
 
 **Constraints:**
+
 - Primary key on `id`
 - Foreign key `user_id` references `auth.users(id)` with CASCADE on delete and update
 - Unique constraint on `(user_id, name)` - deck names must be unique per user
@@ -75,6 +78,7 @@ create table flashcards (
 ```
 
 **Columns:**
+
 - `id` - UUID primary key, auto-generated
 - `deck_id` - Foreign key to decks table
 - `user_id` - Foreign key to auth.users (denormalized for RLS and query performance)
@@ -89,6 +93,7 @@ create table flashcards (
 - `updated_at` - Timestamp when flashcard was last modified
 
 **Constraints:**
+
 - Primary key on `id`
 - Foreign key `deck_id` references `decks(id)` with CASCADE on delete and update
 - Foreign key `user_id` references `auth.users(id)` with CASCADE on delete and update
@@ -115,6 +120,7 @@ create table reviews (
 ```
 
 **Columns:**
+
 - `id` - UUID primary key, auto-generated
 - `flashcard_id` - Foreign key to flashcards table
 - `user_id` - Foreign key to auth.users (denormalized for RLS)
@@ -123,6 +129,7 @@ create table reviews (
 - `next_review_date` - Calculated next review date based on algorithm
 
 **Constraints:**
+
 - Primary key on `id`
 - Foreign key `flashcard_id` references `flashcards(id)` with CASCADE on delete and update
 - Foreign key `user_id` references `auth.users(id)` with CASCADE on delete and update
@@ -173,6 +180,7 @@ flashcards (1) ──< (N) reviews
 ### Cascade Behavior
 
 All foreign keys use `ON DELETE CASCADE ON UPDATE CASCADE`:
+
 - Deleting a deck removes all flashcards in that deck and their reviews
 - Deleting a flashcard removes all associated reviews
 - Deleting a user removes all their decks, flashcards, and reviews
@@ -427,16 +435,16 @@ order by reviewed_at desc;
 
 ### Field-Level Validation
 
-| Table | Field | Validation |
-|-------|-------|------------|
-| decks | name | NOT NULL, varchar(255), CHECK (trim(name) != '') |
-| decks | user_id, name | UNIQUE (user_id, name) |
-| flashcards | front | NOT NULL, text, CHECK (trim(front) != '') |
-| flashcards | back | NOT NULL, text, CHECK (trim(back) != '') |
-| flashcards | ease_factor | decimal, DEFAULT 2.5 |
-| flashcards | interval_days | integer, DEFAULT 0 |
-| flashcards | repetitions | integer, DEFAULT 0 |
-| reviews | difficulty_rating | smallint, CHECK (difficulty_rating BETWEEN 0 AND 3) |
+| Table      | Field             | Validation                                          |
+| ---------- | ----------------- | --------------------------------------------------- |
+| decks      | name              | NOT NULL, varchar(255), CHECK (trim(name) != '')    |
+| decks      | user_id, name     | UNIQUE (user_id, name)                              |
+| flashcards | front             | NOT NULL, text, CHECK (trim(front) != '')           |
+| flashcards | back              | NOT NULL, text, CHECK (trim(back) != '')            |
+| flashcards | ease_factor       | decimal, DEFAULT 2.5                                |
+| flashcards | interval_days     | integer, DEFAULT 0                                  |
+| flashcards | repetitions       | integer, DEFAULT 0                                  |
+| reviews    | difficulty_rating | smallint, CHECK (difficulty_rating BETWEEN 0 AND 3) |
 
 ### Referential Integrity
 
@@ -461,6 +469,7 @@ order by reviewed_at desc;
 **Decision:** Use UUID with `gen_random_uuid()` for all primary keys.
 
 **Rationale:**
+
 - Prevents enumeration attacks
 - Supports distributed systems and horizontal scaling
 - No collision risk when merging data
@@ -471,6 +480,7 @@ order by reviewed_at desc;
 **Decision:** Include `user_id` foreign key on both `flashcards` and `reviews` tables, even though it can be derived through deck relationship.
 
 **Rationale:**
+
 - Simplifies RLS policies (no joins needed)
 - Improves query performance for user-specific queries
 - Enables efficient partial index on flashcards for due cards
@@ -481,6 +491,7 @@ order by reviewed_at desc;
 **Decision:** Use `text` type (unlimited length) instead of `varchar` with length limit.
 
 **Rationale:**
+
 - No artificial limits on card content
 - PostgreSQL handles text efficiently
 - Flexibility for future content requirements
@@ -491,6 +502,7 @@ order by reviewed_at desc;
 **Decision:** Create dedicated `reviews` table rather than storing only latest review data on flashcard.
 
 **Rationale:**
+
 - Complete review history for analytics
 - Supports algorithm refinement and A/B testing
 - Enables user progress tracking and retention analysis
@@ -501,6 +513,7 @@ order by reviewed_at desc;
 **Decision:** Create partial index with WHERE clause for cards due for review.
 
 **Rationale:**
+
 - Most common query in the application
 - Partial index only includes relevant rows (next_review_date <= current_date)
 - Significantly reduces index size and improves performance
@@ -511,6 +524,7 @@ order by reviewed_at desc;
 **Decision:** Implement permanent deletion with CASCADE behavior instead of soft deletes.
 
 **Rationale:**
+
 - Aligns with PRD requirement: "Deletion is permanent (no undo in MVP)"
 - Simpler implementation and queries
 - Prevents database bloat
@@ -522,6 +536,7 @@ order by reviewed_at desc;
 **Decision:** Enforce validation rules at database level with CHECK constraints.
 
 **Rationale:**
+
 - Defense in depth (validation at both application and database layers)
 - Prevents invalid data even if application layer fails
 - Documents business rules in schema
@@ -532,6 +547,7 @@ order by reviewed_at desc;
 **Decision:** Store current spaced repetition state (ease_factor, interval_days, repetitions, next_review_date) directly on flashcards table.
 
 **Rationale:**
+
 - Enables efficient queries for cards due for review
 - Eliminates need to scan reviews table for current state
 - Supports partial index on next_review_date
@@ -542,6 +558,7 @@ order by reviewed_at desc;
 **Decision:** Use `timestamp` instead of `timestamptz`.
 
 **Rationale:**
+
 - Application servers store all times in UTC
 - Simplifies timezone handling
 - Consistent with Supabase default behavior
@@ -552,6 +569,7 @@ order by reviewed_at desc;
 **Decision:** Create separate policies for each CRUD operation on each table.
 
 **Rationale:**
+
 - Fine-grained access control
 - Easier to audit and modify individual permissions
 - Follows principle of least privilege
@@ -565,6 +583,7 @@ order by reviewed_at desc;
 ### Migration File Naming
 
 Follow Supabase convention:
+
 ```
 YYYYMMDDHHmmss_short_description.sql
 ```
@@ -611,11 +630,13 @@ Or alternatively, create a single comprehensive migration for MVP simplicity.
 ### Algorithm Flexibility
 
 The current schema supports multiple spaced repetition algorithms:
+
 - **SM-2:** Classic SuperMemo algorithm
 - **FSRS:** Free Spaced Repetition Scheduler (modern, ML-based)
 - **Anki's Algorithm:** Modified SM-2 with additional parameters
 
 Fields can be adjusted based on chosen algorithm:
+
 - Difficulty rating range can be modified via CHECK constraint
 - Additional algorithm-specific fields can be added to flashcards table
 - Algorithm selection can be stored at deck or user level
@@ -631,6 +652,7 @@ The schema directly supports the two primary success metrics defined in the PRD:
 **Definition:** Percentage of AI-generated flashcards that users accept vs. discard
 
 **Database Support:**
+
 - `is_ai_generated` boolean on flashcards table tracks accepted AI cards
 - Application logs track total AI-generated candidates (including discarded)
 - Query: `SELECT COUNT(*) FROM flashcards WHERE is_ai_generated = true`
@@ -642,6 +664,7 @@ The schema directly supports the two primary success metrics defined in the PRD:
 **Definition:** Percentage of total flashcards created via AI generation
 
 **Database Support:**
+
 - `is_ai_generated` boolean distinguishes creation method
 - Query: `SELECT is_ai_generated, COUNT(*) FROM flashcards GROUP BY is_ai_generated`
 
@@ -650,6 +673,7 @@ The schema directly supports the two primary success metrics defined in the PRD:
 ### Secondary Metrics
 
 The schema also supports additional analytics:
+
 - User retention via last review timestamps
 - Study session frequency via reviews table
 - Average cards per deck via aggregation
@@ -698,13 +722,10 @@ npx supabase gen types typescript --local > src/db/database.types.ts
 ### Type-Safe Client Usage
 
 ```typescript
-import { SupabaseClient } from '@/db/supabase.client'
+import { SupabaseClient } from "@/db/supabase.client";
 
 // Fully typed queries
-const { data: decks } = await supabase
-  .from('decks')
-  .select('*')
-  .eq('user_id', userId)
+const { data: decks } = await supabase.from("decks").select("*").eq("user_id", userId);
 
 // TypeScript knows exact structure of 'decks'
 ```
@@ -748,6 +769,7 @@ const { data: decks } = await supabase
 This database schema provides a solid foundation for the AI Flashcard Learning Platform MVP. It balances simplicity with scalability, implements comprehensive security through RLS policies, and supports efficient querying through strategic indexing. The design follows PostgreSQL and Supabase best practices while maintaining alignment with the 2-week development timeline and MVP scope.
 
 **Key Strengths:**
+
 - Complete data isolation between users via RLS
 - Optimized for common query patterns (finding due cards)
 - Flexible support for multiple spaced repetition algorithms
@@ -758,6 +780,7 @@ This database schema provides a solid foundation for the AI Flashcard Learning P
 - Type-safe integration with TypeScript frontend
 
 **Implementation Ready:**
+
 - All table structures defined and validated
 - RLS policies comprehensive and tested
 - Indexes optimized for performance

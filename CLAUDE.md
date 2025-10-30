@@ -53,6 +53,7 @@ This is a **server-side rendered (SSR)** Astro application using Node.js adapter
 ### Import Aliases
 
 Configured path aliases (see `tsconfig.json` and `components.json`):
+
 - `@/components` - UI components
 - `@/lib` - Libraries and utilities
 - `@/hooks` - React hooks
@@ -97,10 +98,11 @@ npx shadcn@latest add [component-name]
 ```
 
 Example usage:
-```tsx
-import { Button } from "@/components/ui/button"
 
-<Button variant="outline">Click me</Button>
+```tsx
+import { Button } from "@/components/ui/button";
+
+<Button variant="outline">Click me</Button>;
 ```
 
 Browse available components at https://ui.shadcn.com/
@@ -110,6 +112,7 @@ Browse available components at https://ui.shadcn.com/
 ### Setup Structure
 
 The Supabase integration follows this file structure:
+
 - `src/db/supabase.client.ts` - Supabase client initialization with typed Database
 - `src/db/database.types.ts` - Auto-generated types from Supabase schema
 - `src/middleware/index.ts` - Makes Supabase client available via `context.locals.supabase`
@@ -128,6 +131,7 @@ The Supabase integration follows this file structure:
 ### Database Migrations
 
 Migration files in `supabase/migrations/` must follow the naming convention:
+
 ```
 YYYYMMDDHHmmss_short_description.sql
 ```
@@ -135,6 +139,7 @@ YYYYMMDDHHmmss_short_description.sql
 Example: `20240906123045_create_profiles.sql`
 
 **SQL Migration Guidelines:**
+
 - Write all SQL in lowercase
 - Include header comments with migration purpose and affected tables
 - Always enable Row Level Security (RLS) on new tables
