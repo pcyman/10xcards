@@ -567,7 +567,7 @@ The API uses **Supabase Authentication** with JWT (JSON Web Tokens) following th
 
 **1. Registration & Login Flow:**
 
-- User provides username and password
+- User provides username (email) and password
 - Supabase creates user in `auth.users` table
 - Server returns access token and refresh token
 - Client stores tokens securely (httpOnly cookies recommended)

@@ -18,7 +18,7 @@ Transform study materials into optimized flashcards in seconds using AI, while m
 - Manual flashcard creation for supplemental content
 - Deck-based organization system
 - Spaced repetition study sessions using open-source algorithms
-- Simple username/password authentication
+- Simple username(email)/password authentication
 - Full flashcard lifecycle management (create, view, edit, delete)
 
 ### Technical Scope
@@ -54,12 +54,12 @@ Students, professionals, and lifelong learners who:
 
 ### 3.1 User Authentication and Account Management
 
-- Username and password-based authentication system
+- Username (email) and password-based authentication system
 - Account creation without email verification for immediate access
 - Secure password storage using industry-standard hashing
 - User session management with automatic authentication on return visits
 - Row Level Security (RLS) implementation for data isolation between users
-- Basic input validation for username and password fields
+- Basic input validation for username (email) and password fields
 
 ### 3.2 Deck Management
 
@@ -192,12 +192,11 @@ Students, professionals, and lifelong learners who:
 
 - ID: US-001
 - Title: Create New User Account
-- Description: As a new user, I want to create an account using a username and password so that I can start using the flashcard application immediately.
+- Description: As a new user, I want to create an account using a username (email) and password so that I can start using the flashcard application immediately.
 - Acceptance Criteria:
-  - Registration form requires username and password fields
+  - Registration form requires username (email) and password fields
   - Username must be unique across all users
   - Password must meet minimum security requirements (length, complexity)
-  - No email address required for registration
   - No email verification step required
   - Upon successful registration, user is automatically logged in
   - User is redirected to main application interface after registration
