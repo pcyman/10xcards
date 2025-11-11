@@ -1,0 +1,15 @@
+---
+import Layout from "@/layouts/Layout.astro";
+import { LoginForm } from "@/components/LoginForm";
+
+// Check if user is already authenticated
+if (Astro.locals.session) {
+  return Astro.redirect("/decks");
+}
+---
+
+<Layout title="Login - 10xCards">
+  <main class="min-h-screen flex items-center justify-center bg-gray-50">
+    <LoginForm client:load />
+  </main>
+</Layout>

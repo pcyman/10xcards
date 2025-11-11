@@ -205,6 +205,65 @@ export type PaginatedResponseDTO<T> = {
 };
 
 // ============================================================================
+// Auth DTOs
+// ============================================================================
+
+/**
+ * Form state for login view
+ * Used in: LoginForm component (client-side state)
+ */
+export type LoginFormData = {
+  email: string;
+  password: string;
+};
+
+/**
+ * Field-level validation errors for login form
+ * Used in: LoginForm component (client-side state)
+ */
+export type FormFieldError = {
+  email?: string;
+  password?: string;
+};
+
+/**
+ * Request payload for login API endpoint
+ * Used in: POST /api/auth/login
+ */
+export type LoginRequest = {
+  email: string;
+  password: string;
+};
+
+/**
+ * Success response from login API endpoint
+ * Used in: POST /api/auth/login (success response)
+ */
+export type LoginSuccessResponse = {
+  user: {
+    id: string;
+    email: string;
+  };
+  session: {
+    access_token: string;
+    refresh_token: string;
+    expires_at: number;
+  };
+};
+
+/**
+ * Error response from login API endpoint
+ * Used in: POST /api/auth/login (error response)
+ */
+export type LoginError = {
+  error: {
+    message: string;
+    code: string;
+    field?: string;
+  };
+};
+
+// ============================================================================
 // Query Parameter Types
 // ============================================================================
 
