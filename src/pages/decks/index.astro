@@ -1,0 +1,16 @@
+---
+import Layout from "@/layouts/Layout.astro";
+import { DeckListView } from "@/components/decks/DeckListView";
+
+// Disable prerendering for this page
+export const prerender = false;
+
+// Note: Authentication is handled client-side via localStorage
+// The DeckListView component will check for auth and redirect if needed
+---
+
+<Layout title="My Decks">
+  <main role="main">
+    <DeckListView client:only="react" />
+  </main>
+</Layout>

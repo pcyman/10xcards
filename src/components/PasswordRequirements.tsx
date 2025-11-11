@@ -16,10 +16,7 @@ interface PasswordRequirementsProps {
  * @param password - Current password value to validate
  * @param showChecklist - Optional flag to hide checklist until user focuses password field
  */
-export function PasswordRequirements({
-  password,
-  showChecklist = true
-}: PasswordRequirementsProps) {
+export function PasswordRequirements({ password, showChecklist = true }: PasswordRequirementsProps) {
   const requirements: PasswordRequirement[] = useMemo(() => {
     return [
       {
@@ -36,21 +33,14 @@ export function PasswordRequirements({
   }
 
   return (
-    <div
-      className="mt-2 space-y-1"
-      role="status"
-      aria-live="polite"
-      aria-label="Password requirements"
-    >
+    <div className="mt-2 space-y-1" role="status" aria-live="polite" aria-label="Password requirements">
       <p className="text-sm text-muted-foreground">Password must contain:</p>
       <ul className="space-y-1">
         {requirements.map((requirement) => (
           <li
             key={requirement.id}
             className={`flex items-center gap-2 text-sm ${
-              requirement.met
-                ? "text-green-600 dark:text-green-400"
-                : "text-muted-foreground"
+              requirement.met ? "text-green-600 dark:text-green-400" : "text-muted-foreground"
             }`}
           >
             {requirement.met ? (

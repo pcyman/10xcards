@@ -47,18 +47,18 @@ export const GET: APIRoute = async ({ request, locals, url }) => {
     // ========================================================================
     // Step 1: Authentication
     // ========================================================================
-    const authHeader = request.headers.get("Authorization");
-    if (!authHeader?.startsWith("Bearer ")) {
+    // Check if user is authenticated via session (set by middleware)
+    if (!locals.session) {
       return new Response(
         JSON.stringify({
           error: "Unauthorized",
-          message: "Missing or invalid authentication token",
+          message: "Authentication required",
         }),
         { status: 401, headers: { "Content-Type": "application/json" } }
       );
     }
 
-    // Verify user authentication
+    // Get user from Supabase
     const {
       data: { user },
       error: authError,
@@ -150,6 +150,18 @@ export const POST: APIRoute = async ({ request, locals }) => {
     // ========================================================================
     // Step 1: Authentication
     // ========================================================================
+    // Check if user is authenticated via session (set by middleware)
+    if (!locals.session) {
+      return new Response(
+        JSON.stringify({
+          error: "Unauthorized",
+          message: "Authentication required",
+        }),
+        { status: 401, headers: { "Content-Type": "application/json" } }
+      );
+    }
+
+    // Get user from Supabase
     const {
       data: { user },
       error: authError,
@@ -159,7 +171,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
       return new Response(
         JSON.stringify({
           error: "Unauthorized",
-          message: "Authentication required",
+          message: "Invalid or expired authentication token",
         }),
         { status: 401, headers: { "Content-Type": "application/json" } }
       );

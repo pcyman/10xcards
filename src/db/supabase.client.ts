@@ -38,7 +38,27 @@ export function createServerClient(cookies: AstroCookies) {
 }
 
 /**
+ * Creates a Supabase client with a JWT access token.
+ * Used for server-side API routes that authenticate via Authorization header.
+ *
+ * @param accessToken - JWT access token from Authorization header
+ * @returns A Supabase client instance with the user's session
+ */
+export function createClientWithToken(accessToken: string) {
+  return createClient<Database>(supabaseUrl, supabaseAnonKey, {
+    global: {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    },
+    auth: {
+      persistSession: false,
+    },
+  });
+}
+
+/**
  * @deprecated DO NOT USE - This shared client causes security issues.
- * Use createServerClient() with request cookies instead.
+ * Use createServerClient() with request cookies or createClientWithToken() instead.
  */
 export const supabaseClient = createClient<Database>(supabaseUrl, supabaseAnonKey);

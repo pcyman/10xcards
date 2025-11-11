@@ -1,46 +1,76 @@
 import type { APIRoute } from "astro";
+import { createClient } from "@supabase/supabase-js";
 import { handleError, ErrorCode } from "@/lib/errors/handler";
+import type { Database } from "@/db/database.types";
 
 export const prerender = false;
 
 export const POST: APIRoute = async (context) => {
   try {
-    // Get per-request Supabase client from context (uses cookies)
-    const supabase = context.locals.supabase;
-
-    // Get current session from cookies to extract refresh token
-    const {
-      data: { session: currentSession },
-    } = await supabase.auth.getSession();
-
-    if (!currentSession?.refresh_token) {
+    // Parse request body to get refresh token
+    let body: { refresh_token?: string };
+    try {
+      body = await context.request.json();
+    } catch {
       return new Response(
         JSON.stringify({
           error: {
-            message: "Invalid refresh token",
-            code: ErrorCode.INVALID_REFRESH_TOKEN,
+            message: "Invalid JSON in request body",
+            code: ErrorCode.VALIDATION_ERROR,
           },
         }),
         {
-          status: 401,
+          status: 400,
           headers: { "Content-Type": "application/json" },
         }
       );
     }
 
-    // Refresh the session - this automatically updates cookies
+    const { refresh_token } = body;
+
+    if (!refresh_token) {
+      return new Response(
+        JSON.stringify({
+          error: {
+            message: "Refresh token is required",
+            code: ErrorCode.INVALID_REFRESH_TOKEN,
+          },
+        }),
+        {
+          status: 400,
+          headers: { "Content-Type": "application/json" },
+        }
+      );
+    }
+
+    // Create a standalone Supabase client (not using cookies)
+    const supabase = createClient<Database>(
+      import.meta.env.SUPABASE_URL,
+      import.meta.env.SUPABASE_KEY,
+      {
+        auth: {
+          persistSession: false,
+        },
+      }
+    );
+
+    // Refresh the session
     const { data, error } = await supabase.auth.refreshSession({
-      refresh_token: currentSession.refresh_token,
+      refresh_token,
     });
 
-    if (error) {
+    if (error || !data.session) {
       return handleError(error, "refresh");
     }
 
-    // Return success - session is automatically stored in cookies
+    // Return new session tokens
     return new Response(
       JSON.stringify({
-        message: "Session refreshed successfully",
+        session: {
+          access_token: data.session.access_token,
+          refresh_token: data.session.refresh_token,
+          expires_at: data.session.expires_at!,
+        },
       }),
       {
         status: 200,

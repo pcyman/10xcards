@@ -58,10 +58,7 @@ export const useRegisterForm = () => {
    * Validates confirm password field
    * @returns Error message or undefined if valid
    */
-  const validateConfirmPassword = (
-    password: string,
-    confirmPassword: string
-  ): string | undefined => {
+  const validateConfirmPassword = (password: string, confirmPassword: string): string | undefined => {
     if (!confirmPassword) {
       return "Please confirm your password";
     }
@@ -113,10 +110,7 @@ export const useRegisterForm = () => {
     // Validate all fields
     const emailError = validateEmail(formData.email);
     const passwordError = validatePassword(formData.password);
-    const confirmError = validateConfirmPassword(
-      formData.password,
-      formData.confirmPassword
-    );
+    const confirmError = validateConfirmPassword(formData.password, formData.confirmPassword);
 
     if (emailError || passwordError || confirmError) {
       setErrors({
@@ -155,6 +149,9 @@ export const useRegisterForm = () => {
       }
 
       const data: RegisterSuccessResponse = await response.json();
+
+      // Store session in localStorage
+      localStorage.setItem("session", JSON.stringify(data.session));
 
       // Redirect to decks page after successful registration
       window.location.href = "/decks";

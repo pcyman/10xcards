@@ -62,6 +62,10 @@ export const useLoginForm = () => {
 
       if (response.ok) {
         const data: LoginSuccessResponse = await response.json();
+
+        // Store session in localStorage
+        localStorage.setItem("session", JSON.stringify(data.session));
+
         window.location.href = "/decks";
         return;
       }

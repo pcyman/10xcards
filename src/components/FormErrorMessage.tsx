@@ -17,22 +17,13 @@ interface FormErrorMessageProps {
  * @param message - Error message to display (component hidden if undefined)
  * @param fieldId - ID of the associated form field (for aria-describedby)
  */
-export function FormErrorMessage({
-  id,
-  message,
-  fieldId,
-}: FormErrorMessageProps) {
+export function FormErrorMessage({ id, message, fieldId }: FormErrorMessageProps) {
   if (!message) {
     return null;
   }
 
   return (
-    <div
-      id={id}
-      className="mt-1 flex items-center gap-1.5 text-sm text-destructive"
-      role="alert"
-      aria-live="polite"
-    >
+    <div id={id} className="mt-1 flex items-center gap-1.5 text-sm text-destructive" role="alert" aria-live="polite">
       <AlertCircle className="h-4 w-4 flex-shrink-0" aria-hidden="true" />
       <span>{message}</span>
     </div>

@@ -26,15 +26,17 @@ export const POST: APIRoute = async (context) => {
     // Get per-request Supabase client from context
     const supabase = context.locals.supabase;
 
-    // Sign out (this will clear cookies via the storage adapter)
+    // Sign out to invalidate the refresh token on the server
     const { error } = await supabase.auth.signOut();
 
     if (error) {
-      // Log error but still clear cookies
+      // Log error but still return success
+      // Client will clear localStorage regardless
       console.error("[logout] Supabase signOut error:", error);
     }
 
     // Return success response
+    // Client is responsible for clearing localStorage
     return new Response(
       JSON.stringify({
         message: "Logged out successfully",

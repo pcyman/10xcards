@@ -15,21 +15,11 @@ import { PasswordRequirements } from "./PasswordRequirements";
  * submits registration requests to the API, and manages error/success states.
  */
 export const RegisterForm: React.FC = () => {
-  const {
-    formData,
-    errors,
-    isSubmitting,
-    touched,
-    handleChange,
-    handleBlur,
-    handleSubmit,
-  } = useRegisterForm();
+  const { formData, errors, isSubmitting, touched, handleChange, handleBlur, handleSubmit } = useRegisterForm();
 
   return (
     <div className="w-full max-w-md mx-auto p-6">
-      <h1 className="text-2xl font-bold mb-6 text-center">
-        Create your 10xCards account
-      </h1>
+      <h1 className="text-2xl font-bold mb-6 text-center">Create your 10xCards account</h1>
 
       <form onSubmit={handleSubmit} className="space-y-4">
         {/* Email Field */}
@@ -48,11 +38,7 @@ export const RegisterForm: React.FC = () => {
             aria-invalid={!!errors.email}
             aria-describedby={errors.email ? "email-error" : undefined}
           />
-          <FormErrorMessage
-            id="email-error"
-            message={errors.email}
-            fieldId="email"
-          />
+          <FormErrorMessage id="email-error" message={errors.email} fieldId="email" />
         </div>
 
         {/* Password Field */}
@@ -68,17 +54,9 @@ export const RegisterForm: React.FC = () => {
             autoComplete="new-password"
             className={errors.password ? "border-red-500" : ""}
             aria-invalid={!!errors.password}
-            aria-describedby={
-              errors.password
-                ? "password-error password-requirements"
-                : "password-requirements"
-            }
+            aria-describedby={errors.password ? "password-error password-requirements" : "password-requirements"}
           />
-          <FormErrorMessage
-            id="password-error"
-            message={errors.password}
-            fieldId="password"
-          />
+          <FormErrorMessage id="password-error" message={errors.password} fieldId="password" />
           <div id="password-requirements">
             <PasswordRequirements
               password={formData.password}
@@ -100,15 +78,9 @@ export const RegisterForm: React.FC = () => {
             autoComplete="new-password"
             className={errors.confirmPassword ? "border-red-500" : ""}
             aria-invalid={!!errors.confirmPassword}
-            aria-describedby={
-              errors.confirmPassword ? "confirmPassword-error" : undefined
-            }
+            aria-describedby={errors.confirmPassword ? "confirmPassword-error" : undefined}
           />
-          <FormErrorMessage
-            id="confirmPassword-error"
-            message={errors.confirmPassword}
-            fieldId="confirmPassword"
-          />
+          <FormErrorMessage id="confirmPassword-error" message={errors.confirmPassword} fieldId="confirmPassword" />
         </div>
 
         {/* Submit Button */}
