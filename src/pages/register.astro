@@ -1,0 +1,15 @@
+---
+import Layout from "@/layouts/Layout.astro";
+import { RegisterForm } from "@/components/RegisterForm";
+
+// Check if user is already authenticated
+if (Astro.locals.session) {
+  return Astro.redirect("/decks");
+}
+---
+
+<Layout title="Register - 10xCards">
+  <main class="min-h-screen flex items-center justify-center bg-gray-50">
+    <RegisterForm client:load />
+  </main>
+</Layout>

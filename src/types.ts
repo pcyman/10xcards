@@ -263,6 +263,75 @@ export interface LoginError {
   };
 }
 
+/**
+ * Form state for registration view
+ * Used in: RegisterForm component (client-side state)
+ */
+export interface RegisterFormData {
+  email: string;
+  password: string;
+  confirmPassword: string;
+}
+
+/**
+ * Field-level validation errors for registration form
+ * Used in: RegisterForm component (client-side state)
+ */
+export interface RegisterFormFieldError {
+  email?: string;
+  password?: string;
+  confirmPassword?: string;
+}
+
+/**
+ * Request payload for registration API endpoint
+ * Used in: POST /api/auth/register
+ */
+export interface RegisterRequest {
+  email: string;
+  password: string;
+  confirmPassword: string;
+}
+
+/**
+ * Success response from registration API endpoint
+ * Used in: POST /api/auth/register (success response)
+ */
+export interface RegisterSuccessResponse {
+  user: {
+    id: string;
+    email: string;
+  };
+  session: {
+    access_token: string;
+    refresh_token: string;
+    expires_at: number;
+  };
+}
+
+/**
+ * Error response from registration API endpoint
+ * Used in: POST /api/auth/register (error response)
+ */
+export interface RegisterError {
+  error: {
+    message: string;
+    code: string;
+    field?: string;
+  };
+}
+
+/**
+ * Password requirement definition for validation display
+ * Used in: PasswordRequirements component
+ */
+export interface PasswordRequirement {
+  id: string;
+  label: string;
+  test: (password: string) => boolean;
+  met: boolean;
+}
+
 // ============================================================================
 // Query Parameter Types
 // ============================================================================
