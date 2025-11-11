@@ -1,8 +1,10 @@
 ---
-import Welcome from "../components/Welcome.astro";
-import Layout from "../layouts/Layout.astro";
----
+// Redirect based on authentication status from middleware
+if (Astro.locals.session) {
+  // Authenticated user -> redirect to decks
+  return Astro.redirect("/decks");
+}
 
-<Layout>
-  <Welcome />
-</Layout>
+// Unauthenticated user -> redirect to login
+return Astro.redirect("/login");
+---

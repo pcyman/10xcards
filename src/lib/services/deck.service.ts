@@ -1,5 +1,8 @@
-import type { supabaseClient } from "@/db/supabase.client";
+import type { createServerClient } from "@/db/supabase.client";
 import type { CreateDeckCommand, DeckDTO, DeckListQueryParams, PaginatedResponseDTO } from "@/types";
+
+// Type alias for the per-request Supabase client
+type SupabaseServerClient = ReturnType<typeof createServerClient>;
 
 /**
  * Custom error for deck-related operations
@@ -30,7 +33,7 @@ export class DeckService {
    * @throws Error with 'INVALID_DECK_NAME' message if name violates check constraint
    * @throws DeckServiceError if database operation fails
    */
-  async createDeck(supabase: typeof supabaseClient, userId: string, command: CreateDeckCommand): Promise<DeckDTO> {
+  async createDeck(supabase: SupabaseServerClient, userId: string, command: CreateDeckCommand): Promise<DeckDTO> {
     try {
       // ========================================================================
       // Step 1: Insert deck into database
@@ -112,7 +115,7 @@ export class DeckService {
    * @throws DeckServiceError if database query fails
    */
   async listDecks(
-    supabase: typeof supabaseClient,
+    supabase: SupabaseServerClient,
     userId: string,
     params: DeckListQueryParams
   ): Promise<PaginatedResponseDTO<DeckDTO>> {

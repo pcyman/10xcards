@@ -27,26 +27,26 @@ export type DeckDTO = Omit<DeckRow, "user_id"> & {
  * Command to create a new deck
  * Used in: POST /api/decks
  */
-export type CreateDeckCommand = {
+export interface CreateDeckCommand {
   name: string;
-};
+}
 
 /**
  * Command to update an existing deck
  * Used in: PATCH /api/decks/:id
  */
-export type UpdateDeckCommand = {
+export interface UpdateDeckCommand {
   name: string;
-};
+}
 
 /**
  * Response DTO for deck deletion
  * Used in: DELETE /api/decks/:id
  */
-export type DeleteDeckResponseDTO = {
+export interface DeleteDeckResponseDTO {
   message: string;
   deleted_flashcards: number;
-};
+}
 
 // ============================================================================
 // Flashcard DTOs
@@ -64,72 +64,72 @@ export type FlashcardDTO = Omit<FlashcardRow, "user_id">;
  * Command to create a flashcard manually
  * Used in: POST /api/decks/:deckId/flashcards
  */
-export type CreateFlashcardCommand = {
+export interface CreateFlashcardCommand {
   front: string;
   back: string;
-};
+}
 
 /**
  * Command to update an existing flashcard
  * Both fields are optional - at least one must be provided
  * Used in: PATCH /api/flashcards/:id
  */
-export type UpdateFlashcardCommand = {
+export interface UpdateFlashcardCommand {
   front?: string;
   back?: string;
-};
+}
 
 /**
  * Response DTO for flashcard deletion
  * Used in: DELETE /api/flashcards/:id
  */
-export type DeleteFlashcardResponseDTO = {
+export interface DeleteFlashcardResponseDTO {
   message: string;
-};
+}
 
 /**
  * Flashcard candidate from AI generation
  * Contains only front and back text, not yet saved to database
  * Used in: POST /api/decks/:deckId/flashcards/generate (response)
  */
-export type FlashcardCandidateDTO = {
+export interface FlashcardCandidateDTO {
   front: string;
   back: string;
-};
+}
 
 /**
  * Command to generate flashcards using AI
  * Used in: POST /api/decks/:deckId/flashcards/generate
  */
-export type GenerateFlashcardsCommand = {
+export interface GenerateFlashcardsCommand {
   text: string;
-};
+}
 
 /**
  * Response DTO for AI flashcard generation
  * Used in: POST /api/decks/:deckId/flashcards/generate
  */
-export type GenerateFlashcardsResponseDTO = {
+export interface GenerateFlashcardsResponseDTO {
   candidates: FlashcardCandidateDTO[];
   total_generated: number;
-};
+}
 
 /**
  * Command to accept and save AI-generated flashcards in batch
  * Used in: POST /api/decks/:deckId/flashcards/batch
  */
-export type AcceptFlashcardsCommand = {
+export interface AcceptFlashcardsCommand {
   flashcards: FlashcardCandidateDTO[];
-};
+}
 
 /**
  * Response DTO for batch flashcard acceptance
  * Used in: POST /api/decks/:deckId/flashcards/batch
  */
-export type AcceptFlashcardsResponseDTO = {
+export interface AcceptFlashcardsResponseDTO {
   created: FlashcardDTO[];
   total_created: number;
-};
+}
 
 /**
  * Due flashcard DTO for study sessions
@@ -156,9 +156,9 @@ export type ReviewDTO = Omit<ReviewRow, "user_id">;
  * Command to submit a flashcard review
  * Used in: POST /api/flashcards/:id/review
  */
-export type SubmitReviewCommand = {
+export interface SubmitReviewCommand {
   difficulty_rating: number;
-};
+}
 
 /**
  * Flashcard update data returned after review submission
@@ -175,10 +175,10 @@ export type FlashcardReviewUpdateDTO = Pick<
  * Returns both the updated flashcard state and the created review record
  * Used in: POST /api/flashcards/:id/review
  */
-export type ReviewResponseDTO = {
+export interface ReviewResponseDTO {
   flashcard: FlashcardReviewUpdateDTO;
   review: ReviewDTO;
-};
+}
 
 // ============================================================================
 // Pagination DTOs
@@ -188,21 +188,21 @@ export type ReviewResponseDTO = {
  * Pagination metadata
  * Included in all paginated list responses
  */
-export type PaginationDTO = {
+export interface PaginationDTO {
   page: number;
   limit: number;
   total: number;
   total_pages: number;
-};
+}
 
 /**
  * Generic paginated response wrapper
  * Used for all list endpoints that support pagination
  */
-export type PaginatedResponseDTO<T> = {
+export interface PaginatedResponseDTO<T> {
   data: T[];
   pagination: PaginationDTO;
-};
+}
 
 // ============================================================================
 // Auth DTOs
@@ -212,34 +212,34 @@ export type PaginatedResponseDTO<T> = {
  * Form state for login view
  * Used in: LoginForm component (client-side state)
  */
-export type LoginFormData = {
+export interface LoginFormData {
   email: string;
   password: string;
-};
+}
 
 /**
  * Field-level validation errors for login form
  * Used in: LoginForm component (client-side state)
  */
-export type FormFieldError = {
+export interface FormFieldError {
   email?: string;
   password?: string;
-};
+}
 
 /**
  * Request payload for login API endpoint
  * Used in: POST /api/auth/login
  */
-export type LoginRequest = {
+export interface LoginRequest {
   email: string;
   password: string;
-};
+}
 
 /**
  * Success response from login API endpoint
  * Used in: POST /api/auth/login (success response)
  */
-export type LoginSuccessResponse = {
+export interface LoginSuccessResponse {
   user: {
     id: string;
     email: string;
@@ -249,19 +249,19 @@ export type LoginSuccessResponse = {
     refresh_token: string;
     expires_at: number;
   };
-};
+}
 
 /**
  * Error response from login API endpoint
  * Used in: POST /api/auth/login (error response)
  */
-export type LoginError = {
+export interface LoginError {
   error: {
     message: string;
     code: string;
     field?: string;
   };
-};
+}
 
 // ============================================================================
 // Query Parameter Types
@@ -271,39 +271,39 @@ export type LoginError = {
  * Query parameters for listing decks
  * Used in: GET /api/decks
  */
-export type DeckListQueryParams = {
+export interface DeckListQueryParams {
   page?: number;
   limit?: number;
   sort?: "created_at" | "updated_at" | "name";
   order?: "asc" | "desc";
-};
+}
 
 /**
  * Query parameters for listing flashcards in a deck
  * Used in: GET /api/decks/:deckId/flashcards
  */
-export type FlashcardListQueryParams = {
+export interface FlashcardListQueryParams {
   page?: number;
   limit?: number;
   sort?: "created_at" | "updated_at" | "next_review_date";
   order?: "asc" | "desc";
   is_ai_generated?: boolean;
-};
+}
 
 /**
  * Query parameters for getting due flashcards
  * Used in: GET /api/decks/:deckId/flashcards/due
  */
-export type DueFlashcardsQueryParams = {
+export interface DueFlashcardsQueryParams {
   limit?: number;
-};
+}
 
 /**
  * Query parameters for review history
  * Used in: GET /api/flashcards/:flashcardId/reviews
  */
-export type ReviewHistoryQueryParams = {
+export interface ReviewHistoryQueryParams {
   page?: number;
   limit?: number;
   order?: "asc" | "desc";
-};
+}

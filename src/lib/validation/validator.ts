@@ -1,5 +1,5 @@
-import { z } from 'zod';
-import type { APIContext } from 'astro';
+import { z } from "zod";
+import type { APIContext } from "astro";
 
 interface ValidationResult<T> {
   success: boolean;
@@ -11,10 +11,7 @@ interface ValidationResult<T> {
  * Validates request body against Zod schema
  * Returns structured validation result
  */
-export async function validateRequest<T>(
-  context: APIContext,
-  schema: z.ZodSchema<T>
-): Promise<ValidationResult<T>> {
+export async function validateRequest<T>(context: APIContext, schema: z.ZodSchema<T>): Promise<ValidationResult<T>> {
   try {
     const body = await context.request.json();
     const result = schema.safeParse(body);
@@ -22,7 +19,7 @@ export async function validateRequest<T>(
     if (!result.success) {
       const errors: Record<string, string> = {};
       result.error.issues.forEach((issue) => {
-        const path = issue.path.join('.');
+        const path = issue.path.join(".");
         errors[path] = issue.message;
       });
 
@@ -40,7 +37,7 @@ export async function validateRequest<T>(
     return {
       success: false,
       errors: {
-        _form: 'Invalid request body',
+        _form: "Invalid request body",
       },
     };
   }
@@ -49,17 +46,18 @@ export async function validateRequest<T>(
 /**
  * Creates validation error response
  */
-export function createValidationErrorResponse(
-  errors: Record<string, string>
-): Response {
-  return new Response(JSON.stringify({
-    error: {
-      message: 'Validation failed',
-      code: 'VALIDATION_ERROR',
-      fields: errors,
-    },
-  }), {
-    status: 400,
-    headers: { 'Content-Type': 'application/json' },
-  });
+export function createValidationErrorResponse(errors: Record<string, string>): Response {
+  return new Response(
+    JSON.stringify({
+      error: {
+        message: "Validation failed",
+        code: "VALIDATION_ERROR",
+        fields: errors,
+      },
+    }),
+    {
+      status: 400,
+      headers: { "Content-Type": "application/json" },
+    }
+  );
 }

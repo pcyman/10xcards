@@ -1,11 +1,5 @@
 import { useState } from "react";
-import type {
-  FormFieldError,
-  LoginError,
-  LoginFormData,
-  LoginRequest,
-  LoginSuccessResponse,
-} from "../types";
+import type { FormFieldError, LoginError, LoginFormData, LoginRequest, LoginSuccessResponse } from "../types";
 
 export const useLoginForm = () => {
   const [formData, setFormData] = useState<LoginFormData>({
@@ -82,9 +76,7 @@ export const useLoginForm = () => {
           [errorData.error.field!]: errorData.error.message,
         }));
       } else {
-        setApiError(
-          errorData.error.message || "An error occurred. Please try again.",
-        );
+        setApiError(errorData.error.message || "An error occurred. Please try again.");
       }
     } catch (error) {
       setApiError("Network error. Please check your connection.");

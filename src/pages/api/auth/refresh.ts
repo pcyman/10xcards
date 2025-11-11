@@ -1,49 +1,53 @@
-import type { APIRoute } from 'astro';
-import { handleError, ErrorCode } from '@/lib/errors/handler';
+import type { APIRoute } from "astro";
+import { handleError, ErrorCode } from "@/lib/errors/handler";
 
 export const prerender = false;
 
 export const POST: APIRoute = async (context) => {
   try {
-    // Get Supabase client from context
+    // Get per-request Supabase client from context (uses cookies)
     const supabase = context.locals.supabase;
 
-    // Get current session to extract refresh token
-    const { data: { session: currentSession } } = await supabase.auth.getSession();
+    // Get current session from cookies to extract refresh token
+    const {
+      data: { session: currentSession },
+    } = await supabase.auth.getSession();
 
     if (!currentSession?.refresh_token) {
-      return new Response(JSON.stringify({
-        error: {
-          message: 'Invalid refresh token',
-          code: ErrorCode.INVALID_REFRESH_TOKEN,
-        },
-      }), {
-        status: 401,
-        headers: { 'Content-Type': 'application/json' },
-      });
+      return new Response(
+        JSON.stringify({
+          error: {
+            message: "Invalid refresh token",
+            code: ErrorCode.INVALID_REFRESH_TOKEN,
+          },
+        }),
+        {
+          status: 401,
+          headers: { "Content-Type": "application/json" },
+        }
+      );
     }
 
-    // Refresh the session
+    // Refresh the session - this automatically updates cookies
     const { data, error } = await supabase.auth.refreshSession({
       refresh_token: currentSession.refresh_token,
     });
 
     if (error) {
-      return handleError(error, 'refresh');
+      return handleError(error, "refresh");
     }
 
-    // Return new session data
-    return new Response(JSON.stringify({
-      session: {
-        access_token: data.session!.access_token,
-        refresh_token: data.session!.refresh_token,
-        expires_at: data.session!.expires_at,
-      },
-    }), {
-      status: 200,
-      headers: { 'Content-Type': 'application/json' },
-    });
+    // Return success - session is automatically stored in cookies
+    return new Response(
+      JSON.stringify({
+        message: "Session refreshed successfully",
+      }),
+      {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      }
+    );
   } catch (error) {
-    return handleError(error, 'refresh');
+    return handleError(error, "refresh");
   }
 };

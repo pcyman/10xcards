@@ -79,11 +79,7 @@ export const LoginForm: React.FC = () => {
               aria-label={showPassword ? "Hide password" : "Show password"}
               tabIndex={-1}
             >
-              {showPassword ? (
-                <EyeOff className="h-4 w-4" />
-              ) : (
-                <Eye className="h-4 w-4" />
-              )}
+              {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
             </Button>
           </div>
           {errors.password && (
