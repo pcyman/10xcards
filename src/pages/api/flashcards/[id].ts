@@ -91,10 +91,7 @@ export const GET: APIRoute = async ({ params, locals }) => {
     // Step 3: Fetch flashcard via service
     // ========================================================================
     // Service uses RLS to automatically filter by user_id
-    const flashcard = await flashcardService.getFlashcardById(
-      locals.supabase,
-      uuidValidation.data
-    );
+    const flashcard = await flashcardService.getFlashcardById(locals.supabase, uuidValidation.data);
 
     // ========================================================================
     // Step 4: Handle not found

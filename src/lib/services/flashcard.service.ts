@@ -1,5 +1,5 @@
 import type { createServerClient } from "@/db/supabase.client";
-import type { FlashcardDTO, PaginatedResponseDTO } from "@/types";
+import type { FlashcardDTO, PaginatedResponseDTO, CreateFlashcardCommand } from "@/types";
 
 // Type alias for the per-request Supabase client
 type SupabaseServerClient = ReturnType<typeof createServerClient>;
@@ -28,6 +28,15 @@ export interface ListFlashcardsParams {
 }
 
 /**
+ * Parameters for creating a flashcard
+ */
+export interface CreateFlashcardParams {
+  deckId: string;
+  userId: string;
+  command: CreateFlashcardCommand;
+}
+
+/**
  * FlashcardService handles all flashcard-related business logic
  * Provides methods for CRUD operations and flashcard queries
  */
@@ -43,10 +52,7 @@ export class FlashcardService {
    * @returns FlashcardDTO if found, null if not found or not owned by user
    * @throws FlashcardServiceError if database operation fails
    */
-  async getFlashcardById(
-    supabase: SupabaseServerClient,
-    id: string
-  ): Promise<FlashcardDTO | null> {
+  async getFlashcardById(supabase: SupabaseServerClient, id: string): Promise<FlashcardDTO | null> {
     try {
       const { data, error } = await supabase
         .from("flashcards")
@@ -138,17 +144,12 @@ export class FlashcardService {
       }
 
       // Apply sorting and pagination to data query
-      dataQuery = dataQuery
-        .order(sort, { ascending: order === "asc" })
-        .range(offset, offset + limit - 1);
+      dataQuery = dataQuery.order(sort, { ascending: order === "asc" }).range(offset, offset + limit - 1);
 
       // ========================================================================
       // Step 3: Execute queries in parallel
       // ========================================================================
-      const [dataResult, countResult] = await Promise.all([
-        dataQuery,
-        countQuery,
-      ]);
+      const [dataResult, countResult] = await Promise.all([dataQuery, countQuery]);
 
       if (dataResult.error) {
         throw new FlashcardServiceError(`Failed to fetch flashcards: ${dataResult.error.message}`);
@@ -187,6 +188,84 @@ export class FlashcardService {
       // Log and wrap unexpected errors
       console.error("Unexpected error in listFlashcardsInDeck:", error);
       throw new FlashcardServiceError("Failed to list flashcards");
+    }
+  }
+
+  /**
+   * Create a new flashcard manually in a deck
+   *
+   * Creates a flashcard with is_ai_generated=false and default spaced repetition values.
+   * Verifies deck ownership before creation.
+   *
+   * @param supabase - Authenticated Supabase client from context.locals
+   * @param params - CreateFlashcardParams containing deck ID, user ID, and flashcard data
+   * @returns FlashcardDTO of the created flashcard
+   * @throws Error with 'DECK_NOT_FOUND' message if deck doesn't exist or doesn't belong to user
+   * @throws FlashcardServiceError if database operation fails
+   */
+  async createFlashcard(supabase: SupabaseServerClient, params: CreateFlashcardParams): Promise<FlashcardDTO> {
+    const { deckId, userId, command } = params;
+
+    try {
+      // ========================================================================
+      // Step 1: Verify deck ownership
+      // ========================================================================
+      const { data: deck, error: deckError } = await supabase
+        .from("decks")
+        .select("id")
+        .eq("id", deckId)
+        .eq("user_id", userId)
+        .maybeSingle();
+
+      if (deckError) {
+        throw new FlashcardServiceError(`Failed to verify deck ownership: ${deckError.message}`);
+      }
+
+      if (!deck) {
+        throw new Error("DECK_NOT_FOUND");
+      }
+
+      // ========================================================================
+      // Step 2: Insert flashcard with default spaced repetition values
+      // ========================================================================
+      const { data: flashcard, error: insertError } = await supabase
+        .from("flashcards")
+        .insert({
+          deck_id: deckId,
+          user_id: userId,
+          front: command.front,
+          back: command.back,
+          is_ai_generated: false,
+          // Default values are set by database:
+          // - next_review_date: current_date
+          // - ease_factor: 2.5
+          // - interval_days: 0
+          // - repetitions: 0
+        })
+        .select(
+          "id, deck_id, front, back, is_ai_generated, next_review_date, ease_factor, interval_days, repetitions, created_at, updated_at"
+        )
+        .single();
+
+      if (insertError) {
+        throw new FlashcardServiceError(`Failed to create flashcard: ${insertError.message}`);
+      }
+
+      return flashcard as FlashcardDTO;
+    } catch (error) {
+      // Re-throw known errors (DECK_NOT_FOUND)
+      if (error instanceof Error && error.message === "DECK_NOT_FOUND") {
+        throw error;
+      }
+
+      // Re-throw FlashcardServiceError
+      if (error instanceof FlashcardServiceError) {
+        throw error;
+      }
+
+      // Log and wrap unexpected errors
+      console.error("Unexpected error in createFlashcard:", error);
+      throw new FlashcardServiceError("Failed to create flashcard");
     }
   }
 }
