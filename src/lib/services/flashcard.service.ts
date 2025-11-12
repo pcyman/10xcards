@@ -1,5 +1,5 @@
 import type { createServerClient } from "@/db/supabase.client";
-import type { FlashcardDTO, PaginatedResponseDTO, CreateFlashcardCommand } from "@/types";
+import type { FlashcardDTO, PaginatedResponseDTO, CreateFlashcardCommand, UpdateFlashcardCommand } from "@/types";
 
 // Type alias for the per-request Supabase client
 type SupabaseServerClient = ReturnType<typeof createServerClient>;
@@ -34,6 +34,15 @@ export interface CreateFlashcardParams {
   deckId: string;
   userId: string;
   command: CreateFlashcardCommand;
+}
+
+/**
+ * Parameters for updating a flashcard
+ */
+export interface UpdateFlashcardParams {
+  flashcardId: string;
+  userId: string;
+  command: UpdateFlashcardCommand;
 }
 
 /**
@@ -266,6 +275,82 @@ export class FlashcardService {
       // Log and wrap unexpected errors
       console.error("Unexpected error in createFlashcard:", error);
       throw new FlashcardServiceError("Failed to create flashcard");
+    }
+  }
+
+  /**
+   * Update an existing flashcard's content
+   *
+   * Updates front and/or back text of a flashcard.
+   * Verifies flashcard ownership before update.
+   * The updated_at timestamp is automatically set by database trigger.
+   *
+   * @param supabase - Authenticated Supabase client from context.locals
+   * @param params - UpdateFlashcardParams containing flashcard ID, user ID, and update data
+   * @returns FlashcardDTO of the updated flashcard
+   * @throws Error with 'FLASHCARD_NOT_FOUND' message if flashcard doesn't exist or doesn't belong to user
+   * @throws FlashcardServiceError if database operation fails
+   */
+  async updateFlashcard(supabase: SupabaseServerClient, params: UpdateFlashcardParams): Promise<FlashcardDTO> {
+    const { flashcardId, userId, command } = params;
+
+    try {
+      // ========================================================================
+      // Step 1: Build update object with only provided fields
+      // ========================================================================
+      const updateData: { front?: string; back?: string } = {};
+
+      if (command.front !== undefined) {
+        updateData.front = command.front;
+      }
+
+      if (command.back !== undefined) {
+        updateData.back = command.back;
+      }
+
+      // ========================================================================
+      // Step 2: Update flashcard with ownership verification
+      // ========================================================================
+      const { data: flashcard, error: updateError } = await supabase
+        .from("flashcards")
+        .update(updateData)
+        .eq("id", flashcardId)
+        .eq("user_id", userId)
+        .select(
+          "id, deck_id, front, back, is_ai_generated, next_review_date, ease_factor, interval_days, repetitions, created_at, updated_at"
+        )
+        .single();
+
+      // ========================================================================
+      // Step 3: Handle database errors
+      // ========================================================================
+      if (updateError) {
+        throw new FlashcardServiceError(`Failed to update flashcard: ${updateError.message}`);
+      }
+
+      // If no flashcard was returned, it either doesn't exist or doesn't belong to user
+      if (!flashcard) {
+        throw new Error("FLASHCARD_NOT_FOUND");
+      }
+
+      // ========================================================================
+      // Step 4: Return updated flashcard DTO
+      // ========================================================================
+      return flashcard as FlashcardDTO;
+    } catch (error) {
+      // Re-throw known errors (FLASHCARD_NOT_FOUND)
+      if (error instanceof Error && error.message === "FLASHCARD_NOT_FOUND") {
+        throw error;
+      }
+
+      // Re-throw FlashcardServiceError
+      if (error instanceof FlashcardServiceError) {
+        throw error;
+      }
+
+      // Log and wrap unexpected errors
+      console.error("Unexpected error in updateFlashcard:", error);
+      throw new FlashcardServiceError("Failed to update flashcard");
     }
   }
 }
