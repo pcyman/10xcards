@@ -1,5 +1,5 @@
 import type { createServerClient } from "@/db/supabase.client";
-import type { CreateDeckCommand, DeckDTO, DeckListQueryParams, PaginatedResponseDTO } from "@/types";
+import type { CreateDeckCommand, UpdateDeckCommand, DeckDTO, DeckListQueryParams, PaginatedResponseDTO } from "@/types";
 
 // Type alias for the per-request Supabase client
 type SupabaseServerClient = ReturnType<typeof createServerClient>;
@@ -276,6 +276,163 @@ export class DeckService {
       console.error("Unexpected error in listDecks:", error);
       throw new DeckServiceError("Failed to list decks");
     }
+  }
+
+  /**
+   * Update an existing deck name
+   *
+   * Updates the name of a deck with strict ownership verification.
+   * Enforces unique deck names per user via database constraint.
+   * Returns the updated deck with computed statistics.
+   *
+   * @param supabase - Authenticated Supabase client from context.locals
+   * @param userId - ID of authenticated user
+   * @param deckId - ID of the deck to update
+   * @param command - UpdateDeckCommand containing the new deck name
+   * @returns DeckDTO with computed statistics
+   * @throws Error with 'DECK_NOT_FOUND' message if deck doesn't exist or doesn't belong to user
+   * @throws Error with 'DUPLICATE_DECK_NAME' message if duplicate deck name
+   * @throws DeckServiceError if database operation fails
+   */
+  async updateDeck(
+    supabase: SupabaseServerClient,
+    userId: string,
+    deckId: string,
+    command: UpdateDeckCommand
+  ): Promise<DeckDTO> {
+    try {
+      // ========================================================================
+      // Step 1: Update deck with ownership verification
+      // ========================================================================
+      const { data: deck, error: updateError } = await supabase
+        .from("decks")
+        .update({
+          name: command.name,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", deckId)
+        .eq("user_id", userId)
+        .select("id, name, created_at, updated_at")
+        .single();
+
+      // ========================================================================
+      // Step 2: Handle database errors and constraints
+      // ========================================================================
+      // Handle unique constraint violation (user_id, name)
+      if (updateError?.code === "23505") {
+        throw new Error("DUPLICATE_DECK_NAME");
+      }
+
+      if (updateError) {
+        throw new DeckServiceError(`Failed to update deck: ${updateError.message}`);
+      }
+
+      // If no deck was returned, it either doesn't exist or doesn't belong to user
+      if (!deck) {
+        throw new Error("DECK_NOT_FOUND");
+      }
+
+      // ========================================================================
+      // Step 3: Compute deck statistics
+      // ========================================================================
+      const stats = await this.computeDeckStatistics(supabase, deckId, userId);
+
+      // ========================================================================
+      // Step 4: Return DTO with computed statistics
+      // ========================================================================
+      return {
+        id: deck.id,
+        name: deck.name,
+        created_at: deck.created_at,
+        updated_at: deck.updated_at,
+        ...stats,
+      };
+    } catch (error) {
+      // Re-throw known errors (DECK_NOT_FOUND, DUPLICATE_DECK_NAME)
+      if (error instanceof Error && (error.message === "DECK_NOT_FOUND" || error.message === "DUPLICATE_DECK_NAME")) {
+        throw error;
+      }
+
+      // Re-throw DeckServiceError
+      if (error instanceof DeckServiceError) {
+        throw error;
+      }
+
+      // Log and wrap unexpected errors
+      console.error("Unexpected error in updateDeck:", error);
+      throw new DeckServiceError("Failed to update deck");
+    }
+  }
+
+  /**
+   * Compute statistics for a deck
+   *
+   * @param supabase - Authenticated Supabase client
+   * @param deckId - ID of the deck
+   * @param userId - ID of the user (for security)
+   * @returns Object containing total_flashcards, cards_due, and next_review_date
+   * @private
+   */
+  private async computeDeckStatistics(
+    supabase: SupabaseServerClient,
+    deckId: string,
+    userId: string
+  ): Promise<{
+    total_flashcards: number;
+    cards_due: number;
+    next_review_date: string | null;
+  }> {
+    const now = new Date().toISOString();
+
+    // ========================================================================
+    // Total flashcards count
+    // ========================================================================
+    const { count: total, error: totalError } = await supabase
+      .from("flashcards")
+      .select("*", { count: "exact", head: true })
+      .eq("deck_id", deckId)
+      .eq("user_id", userId);
+
+    if (totalError) {
+      throw new DeckServiceError(`Failed to count total flashcards: ${totalError.message}`);
+    }
+
+    // ========================================================================
+    // Cards due count
+    // ========================================================================
+    const { count: due, error: dueError } = await supabase
+      .from("flashcards")
+      .select("*", { count: "exact", head: true })
+      .eq("deck_id", deckId)
+      .eq("user_id", userId)
+      .lte("next_review_date", now);
+
+    if (dueError) {
+      throw new DeckServiceError(`Failed to count cards due: ${dueError.message}`);
+    }
+
+    // ========================================================================
+    // Next review date
+    // ========================================================================
+    const { data: nextCard, error: nextError } = await supabase
+      .from("flashcards")
+      .select("next_review_date")
+      .eq("deck_id", deckId)
+      .eq("user_id", userId)
+      .gt("next_review_date", now)
+      .order("next_review_date", { ascending: true })
+      .limit(1)
+      .maybeSingle();
+
+    if (nextError) {
+      throw new DeckServiceError(`Failed to get next review date: ${nextError.message}`);
+    }
+
+    return {
+      total_flashcards: total ?? 0,
+      cards_due: due ?? 0,
+      next_review_date: nextCard?.next_review_date ?? null,
+    };
   }
 }
 
