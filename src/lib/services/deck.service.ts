@@ -365,6 +365,74 @@ export class DeckService {
   }
 
   /**
+   * Delete a deck and all its associated flashcards and reviews
+   *
+   * Permanently deletes a deck with ownership verification. The database CASCADE
+   * constraints automatically handle deletion of associated flashcards and reviews.
+   * Returns the count of deleted flashcards for user feedback.
+   *
+   * @param supabase - Authenticated Supabase client from context.locals
+   * @param userId - ID of authenticated user
+   * @param deckId - ID of the deck to delete
+   * @returns Object with deleted_flashcards count, or null if deck not found
+   * @throws DeckServiceError if database operation fails
+   */
+  async deleteDeck(
+    supabase: SupabaseServerClient,
+    userId: string,
+    deckId: string
+  ): Promise<{ deleted_flashcards: number } | null> {
+    try {
+      // ========================================================================
+      // Step 1: Count flashcards before deletion
+      // ========================================================================
+      const { count, error: countError } = await supabase
+        .from("flashcards")
+        .select("*", { count: "exact", head: true })
+        .eq("deck_id", deckId)
+        .eq("user_id", userId);
+
+      if (countError) {
+        throw new DeckServiceError(`Failed to count flashcards: ${countError.message}`);
+      }
+
+      const flashcardCount = count ?? 0;
+
+      // ========================================================================
+      // Step 2: Delete deck with ownership verification
+      // ========================================================================
+      const { data, error: deleteError } = await supabase
+        .from("decks")
+        .delete()
+        .eq("id", deckId)
+        .eq("user_id", userId)
+        .select("id")
+        .single();
+
+      // If no data returned, deck doesn't exist or doesn't belong to user
+      if (deleteError || !data) {
+        return null;
+      }
+
+      // ========================================================================
+      // Step 3: Return flashcard count for user feedback
+      // ========================================================================
+      return {
+        deleted_flashcards: flashcardCount,
+      };
+    } catch (error) {
+      // Re-throw DeckServiceError
+      if (error instanceof DeckServiceError) {
+        throw error;
+      }
+
+      // Log and wrap unexpected errors
+      console.error("Unexpected error in deleteDeck:", error);
+      throw new DeckServiceError("Failed to delete deck");
+    }
+  }
+
+  /**
    * Compute statistics for a deck
    *
    * @param supabase - Authenticated Supabase client

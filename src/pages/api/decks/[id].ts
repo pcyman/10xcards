@@ -1,5 +1,5 @@
 import type { APIRoute } from "astro";
-import type { UpdateDeckCommand } from "@/types";
+import type { UpdateDeckCommand, DeleteDeckResponseDTO } from "@/types";
 import { deckService, DeckServiceError } from "@/lib/services/deck.service";
 import { updateDeckSchema, uuidSchema } from "@/lib/validation/deck.schemas";
 
@@ -199,6 +199,163 @@ export const PATCH: APIRoute = async ({ params, request, locals }) => {
 
     // Log unexpected errors
     console.error("Unexpected error in PATCH /api/decks/:id:", {
+      timestamp: new Date().toISOString(),
+      userId: locals.session?.user?.id ?? "unknown",
+      deckId: params.id,
+      error: error instanceof Error ? { message: error.message, stack: error.stack } : error,
+    });
+
+    // Return generic error
+    return new Response(
+      JSON.stringify({
+        error: {
+          message: "An unexpected error occurred",
+          code: "INTERNAL_SERVER_ERROR",
+        },
+      }),
+      {
+        status: 500,
+        headers: { "Content-Type": "application/json" },
+      }
+    );
+  }
+};
+
+/**
+ * DELETE /api/decks/:id
+ *
+ * Delete a deck and all associated flashcards and reviews for the authenticated user
+ *
+ * Path Parameters:
+ * @param id - UUID of the deck to delete
+ *
+ * @returns Success message with count of deleted flashcards (200 OK)
+ */
+export const DELETE: APIRoute = async ({ params, locals }) => {
+  try {
+    // ========================================================================
+    // Step 1: Authentication
+    // ========================================================================
+    // Check if user is authenticated via session (set by middleware)
+    if (!locals.session) {
+      return new Response(
+        JSON.stringify({
+          error: {
+            message: "Invalid or expired authentication token",
+            code: "UNAUTHORIZED",
+          },
+        }),
+        {
+          status: 401,
+          headers: { "Content-Type": "application/json" },
+        }
+      );
+    }
+
+    // Get user from Supabase
+    const {
+      data: { user },
+      error: authError,
+    } = await locals.supabase.auth.getUser();
+
+    if (authError || !user) {
+      return new Response(
+        JSON.stringify({
+          error: {
+            message: "Invalid or expired authentication token",
+            code: "UNAUTHORIZED",
+          },
+        }),
+        {
+          status: 401,
+          headers: { "Content-Type": "application/json" },
+        }
+      );
+    }
+
+    // ========================================================================
+    // Step 2: Validate deck ID
+    // ========================================================================
+    const { id } = params;
+    const uuidValidation = uuidSchema.safeParse(id);
+
+    if (!uuidValidation.success) {
+      return new Response(
+        JSON.stringify({
+          error: {
+            message: "Invalid deck ID format",
+            code: "INVALID_UUID",
+          },
+        }),
+        {
+          status: 400,
+          headers: { "Content-Type": "application/json" },
+        }
+      );
+    }
+
+    // ========================================================================
+    // Step 3: Delete deck via service
+    // ========================================================================
+    const result = await deckService.deleteDeck(locals.supabase, user.id, uuidValidation.data);
+
+    if (!result) {
+      return new Response(
+        JSON.stringify({
+          error: {
+            message: "Deck not found",
+            code: "DECK_NOT_FOUND",
+          },
+        }),
+        {
+          status: 404,
+          headers: { "Content-Type": "application/json" },
+        }
+      );
+    }
+
+    // ========================================================================
+    // Step 4: Return success response
+    // ========================================================================
+    const response: DeleteDeckResponseDTO = {
+      message: "Deck deleted successfully",
+      deleted_flashcards: result.deleted_flashcards,
+    };
+
+    return new Response(JSON.stringify(response), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    });
+  } catch (error) {
+    // ========================================================================
+    // Step 5: Handle service-level errors
+    // ========================================================================
+    // Handle DeckService errors
+    if (error instanceof DeckServiceError) {
+      console.error("DeckService error in DELETE /api/decks/:id:", {
+        timestamp: new Date().toISOString(),
+        userId: locals.session?.user?.id ?? "unknown",
+        deckId: params.id,
+        message: error.message,
+        error,
+      });
+
+      return new Response(
+        JSON.stringify({
+          error: {
+            message: "An unexpected error occurred",
+            code: "INTERNAL_SERVER_ERROR",
+          },
+        }),
+        {
+          status: 500,
+          headers: { "Content-Type": "application/json" },
+        }
+      );
+    }
+
+    // Log unexpected errors
+    console.error("Unexpected error in DELETE /api/decks/:id:", {
       timestamp: new Date().toISOString(),
       userId: locals.session?.user?.id ?? "unknown",
       deckId: params.id,
