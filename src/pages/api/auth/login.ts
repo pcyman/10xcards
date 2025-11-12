@@ -19,15 +19,11 @@ export const POST: APIRoute = async (context) => {
     const { email, password } = validation.data!;
 
     // Create a standalone Supabase client (not using cookies)
-    const supabase = createClient<Database>(
-      import.meta.env.SUPABASE_URL,
-      import.meta.env.SUPABASE_KEY,
-      {
-        auth: {
-          persistSession: false,
-        },
-      }
-    );
+    const supabase = createClient<Database>(import.meta.env.SUPABASE_URL, import.meta.env.SUPABASE_KEY, {
+      auth: {
+        persistSession: false,
+      },
+    });
 
     // Attempt to authenticate
     const { data, error } = await supabase.auth.signInWithPassword({

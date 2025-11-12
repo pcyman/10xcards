@@ -7,6 +7,158 @@ import { updateDeckSchema, uuidSchema } from "@/lib/validation/deck.schemas";
 export const prerender = false;
 
 /**
+ * GET /api/decks/:id
+ *
+ * Retrieve details of a specific deck with computed statistics
+ *
+ * Path Parameters:
+ * @param id - UUID of the deck to retrieve
+ *
+ * @returns Deck details with statistics (200 OK)
+ */
+export const GET: APIRoute = async ({ params, locals }) => {
+  try {
+    // ========================================================================
+    // Step 1: Authentication
+    // ========================================================================
+    // Check if user is authenticated via session (set by middleware)
+    if (!locals.session) {
+      return new Response(
+        JSON.stringify({
+          error: {
+            message: "Invalid or expired authentication token",
+            code: "UNAUTHORIZED",
+          },
+        }),
+        {
+          status: 401,
+          headers: { "Content-Type": "application/json" },
+        }
+      );
+    }
+
+    // Get user from Supabase
+    const {
+      data: { user },
+      error: authError,
+    } = await locals.supabase.auth.getUser();
+
+    if (authError || !user) {
+      return new Response(
+        JSON.stringify({
+          error: {
+            message: "Invalid or expired authentication token",
+            code: "UNAUTHORIZED",
+          },
+        }),
+        {
+          status: 401,
+          headers: { "Content-Type": "application/json" },
+        }
+      );
+    }
+
+    // ========================================================================
+    // Step 2: Validate deck ID
+    // ========================================================================
+    const { id } = params;
+    const uuidValidation = uuidSchema.safeParse(id);
+
+    if (!uuidValidation.success) {
+      return new Response(
+        JSON.stringify({
+          error: {
+            message: "Invalid deck ID format",
+            code: "INVALID_UUID",
+          },
+        }),
+        {
+          status: 400,
+          headers: { "Content-Type": "application/json" },
+        }
+      );
+    }
+
+    // ========================================================================
+    // Step 3: Fetch deck via service
+    // ========================================================================
+    const deck = await deckService.getDeck(locals.supabase, user.id, uuidValidation.data);
+
+    if (!deck) {
+      return new Response(
+        JSON.stringify({
+          error: {
+            message: "Deck not found",
+            code: "DECK_NOT_FOUND",
+          },
+        }),
+        {
+          status: 404,
+          headers: { "Content-Type": "application/json" },
+        }
+      );
+    }
+
+    // ========================================================================
+    // Step 4: Return success response
+    // ========================================================================
+    return new Response(JSON.stringify(deck), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    });
+  } catch (error) {
+    // ========================================================================
+    // Step 5: Handle service-level errors
+    // ========================================================================
+    // Handle DeckService errors
+    if (error instanceof DeckServiceError) {
+      console.error("DeckService error in GET /api/decks/:id:", {
+        timestamp: new Date().toISOString(),
+        userId: locals.session?.user?.id ?? "unknown",
+        deckId: params.id,
+        message: error.message,
+        error,
+      });
+
+      return new Response(
+        JSON.stringify({
+          error: {
+            message: "An unexpected error occurred",
+            code: "INTERNAL_SERVER_ERROR",
+          },
+        }),
+        {
+          status: 500,
+          headers: { "Content-Type": "application/json" },
+        }
+      );
+    }
+
+    // Log unexpected errors
+    console.error("Unexpected error in GET /api/decks/:id:", {
+      timestamp: new Date().toISOString(),
+      userId: locals.session?.user?.id ?? "unknown",
+      deckId: params.id,
+      error: error instanceof Error ? { message: error.message, stack: error.stack } : error,
+    });
+
+    // Return generic error
+    return new Response(
+      JSON.stringify({
+        error: {
+          message: "An unexpected error occurred",
+          code: "INTERNAL_SERVER_ERROR",
+        },
+      }),
+      {
+        status: 500,
+        headers: { "Content-Type": "application/json" },
+      }
+    );
+  }
+};
+
+/**
  * PATCH /api/decks/:id
  *
  * Update an existing deck name for the authenticated user

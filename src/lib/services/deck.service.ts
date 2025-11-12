@@ -433,6 +433,73 @@ export class DeckService {
   }
 
   /**
+   * Get a single deck with computed statistics
+   *
+   * Fetches deck details with ownership verification and computes statistics:
+   * - total_flashcards: Total number of cards in deck
+   * - cards_due: Number of cards due for review (next_review_date <= now)
+   * - next_review_date: Earliest upcoming review date
+   *
+   * @param supabase - Authenticated Supabase client from context.locals
+   * @param userId - ID of authenticated user
+   * @param deckId - UUID of the deck to retrieve
+   * @returns DeckDTO with computed statistics, or null if not found/unauthorized
+   * @throws DeckServiceError if database query fails
+   */
+  async getDeck(supabase: SupabaseServerClient, userId: string, deckId: string): Promise<DeckDTO | null> {
+    try {
+      // ========================================================================
+      // Step 1: Fetch deck with ownership verification
+      // ========================================================================
+      const { data: deck, error } = await supabase
+        .from("decks")
+        .select("id, name, created_at, updated_at")
+        .eq("id", deckId)
+        .eq("user_id", userId)
+        .maybeSingle();
+
+      // ========================================================================
+      // Step 2: Handle database errors
+      // ========================================================================
+      if (error) {
+        throw new DeckServiceError(`Failed to fetch deck: ${error.message}`);
+      }
+
+      // ========================================================================
+      // Step 3: Return null if deck not found or unauthorized
+      // ========================================================================
+      if (!deck) {
+        return null;
+      }
+
+      // ========================================================================
+      // Step 4: Compute deck statistics
+      // ========================================================================
+      const stats = await this.computeDeckStatistics(supabase, deckId, userId);
+
+      // ========================================================================
+      // Step 5: Return DTO with computed statistics
+      // ========================================================================
+      return {
+        id: deck.id,
+        name: deck.name,
+        created_at: deck.created_at,
+        updated_at: deck.updated_at,
+        ...stats,
+      };
+    } catch (error) {
+      // Re-throw DeckServiceError
+      if (error instanceof DeckServiceError) {
+        throw error;
+      }
+
+      // Log and wrap unexpected errors
+      console.error("Unexpected error in getDeck:", error);
+      throw new DeckServiceError("Failed to get deck");
+    }
+  }
+
+  /**
    * Compute statistics for a deck
    *
    * @param supabase - Authenticated Supabase client

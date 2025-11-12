@@ -44,15 +44,11 @@ export const POST: APIRoute = async (context) => {
     }
 
     // Create a standalone Supabase client (not using cookies)
-    const supabase = createClient<Database>(
-      import.meta.env.SUPABASE_URL,
-      import.meta.env.SUPABASE_KEY,
-      {
-        auth: {
-          persistSession: false,
-        },
-      }
-    );
+    const supabase = createClient<Database>(import.meta.env.SUPABASE_URL, import.meta.env.SUPABASE_KEY, {
+      auth: {
+        persistSession: false,
+      },
+    });
 
     // Refresh the session
     const { data, error } = await supabase.auth.refreshSession({
