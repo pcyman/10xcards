@@ -33,6 +33,49 @@ export interface ListFlashcardsParams {
  */
 export class FlashcardService {
   /**
+   * Get a single flashcard by ID
+   *
+   * Fetches detailed information about a specific flashcard.
+   * RLS policies automatically ensure the flashcard belongs to the authenticated user.
+   *
+   * @param supabase - Authenticated Supabase client from context.locals
+   * @param id - UUID of the flashcard to retrieve
+   * @returns FlashcardDTO if found, null if not found or not owned by user
+   * @throws FlashcardServiceError if database operation fails
+   */
+  async getFlashcardById(
+    supabase: SupabaseServerClient,
+    id: string
+  ): Promise<FlashcardDTO | null> {
+    try {
+      const { data, error } = await supabase
+        .from("flashcards")
+        .select(
+          "id, deck_id, front, back, is_ai_generated, next_review_date, ease_factor, interval_days, repetitions, created_at, updated_at"
+        )
+        .eq("id", id)
+        .maybeSingle();
+
+      if (error) {
+        console.error("Database error fetching flashcard:", error);
+        throw new FlashcardServiceError(`Failed to fetch flashcard: ${error.message}`);
+      }
+
+      // Return null if flashcard not found or not owned by user (filtered by RLS)
+      return data as FlashcardDTO | null;
+    } catch (error) {
+      // Re-throw FlashcardServiceError
+      if (error instanceof FlashcardServiceError) {
+        throw error;
+      }
+
+      // Log and wrap unexpected errors
+      console.error("Unexpected error in getFlashcardById:", error);
+      throw new FlashcardServiceError("Failed to fetch flashcard");
+    }
+  }
+
+  /**
    * List flashcards in a deck with pagination and filtering
    *
    * Fetches paginated flashcards with optional AI generation filter.
