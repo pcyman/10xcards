@@ -1,6 +1,6 @@
 import type { APIRoute } from "astro";
-import type { UpdateFlashcardCommand } from "@/types";
-import { flashcardService, FlashcardServiceError } from "@/lib/services/flashcard.service";
+import type { UpdateFlashcardCommand, DeleteFlashcardResponseDTO } from "@/types";
+import { flashcardService, FlashcardServiceError, NotFoundError } from "@/lib/services/flashcard.service";
 import { uuidSchema } from "@/lib/validation/deck.schemas";
 import { updateFlashcardSchema } from "@/lib/validation/flashcard.schemas";
 
@@ -367,6 +367,177 @@ export const PATCH: APIRoute = async ({ params, request, locals }) => {
 
     // Log unexpected errors
     console.error("Unexpected error in PATCH /api/flashcards/:id:", {
+      timestamp: new Date().toISOString(),
+      userId: locals.session?.user?.id ?? "unknown",
+      flashcardId: params.id,
+      error: error instanceof Error ? { message: error.message, stack: error.stack } : error,
+    });
+
+    // Return generic error
+    return new Response(
+      JSON.stringify({
+        error: {
+          message: "An unexpected error occurred",
+          code: "INTERNAL_SERVER_ERROR",
+        },
+      }),
+      {
+        status: 500,
+        headers: { "Content-Type": "application/json" },
+      }
+    );
+  }
+};
+
+/**
+ * DELETE /api/flashcards/:id
+ *
+ * Permanently delete a flashcard and all its associated review history.
+ * This is a destructive operation that cannot be undone.
+ * The endpoint enforces user ownership through authentication and explicit user_id checks.
+ * CASCADE deletion automatically removes all related review records.
+ *
+ * Path Parameters:
+ * @param id - UUID of the flashcard to delete
+ *
+ * Response (200 OK):
+ * Returns DeleteFlashcardResponseDTO with success message
+ *
+ * Error Responses:
+ * - 400: Invalid UUID format
+ * - 401: Missing or invalid JWT token
+ * - 404: Flashcard not found or not owned by user
+ * - 500: Database or server error
+ */
+export const DELETE: APIRoute = async ({ params, locals }) => {
+  try {
+    // ========================================================================
+    // Step 1: Authentication
+    // ========================================================================
+    // Check if user is authenticated via session (set by middleware)
+    if (!locals.session) {
+      return new Response(
+        JSON.stringify({
+          error: {
+            message: "Invalid or expired authentication token",
+            code: "UNAUTHORIZED",
+          },
+        }),
+        {
+          status: 401,
+          headers: { "Content-Type": "application/json" },
+        }
+      );
+    }
+
+    // Get user from Supabase to ensure session is valid
+    const {
+      data: { user },
+      error: authError,
+    } = await locals.supabase.auth.getUser();
+
+    if (authError || !user) {
+      return new Response(
+        JSON.stringify({
+          error: {
+            message: "Invalid or expired authentication token",
+            code: "UNAUTHORIZED",
+          },
+        }),
+        {
+          status: 401,
+          headers: { "Content-Type": "application/json" },
+        }
+      );
+    }
+
+    // ========================================================================
+    // Step 2: Validate flashcard ID
+    // ========================================================================
+    const { id } = params;
+    const uuidValidation = uuidSchema.safeParse(id);
+
+    if (!uuidValidation.success) {
+      return new Response(
+        JSON.stringify({
+          error: {
+            message: "Invalid flashcard ID format",
+            code: "INVALID_UUID",
+          },
+        }),
+        {
+          status: 400,
+          headers: { "Content-Type": "application/json" },
+        }
+      );
+    }
+
+    // ========================================================================
+    // Step 3: Delete flashcard via service
+    // ========================================================================
+    // Service verifies ownership and performs CASCADE deletion of reviews
+    await flashcardService.deleteFlashcard(locals.supabase, uuidValidation.data, user.id);
+
+    // ========================================================================
+    // Step 4: Return success response
+    // ========================================================================
+    const response: DeleteFlashcardResponseDTO = {
+      message: "Flashcard deleted successfully",
+    };
+
+    return new Response(JSON.stringify(response), {
+      status: 200,
+      headers: {
+        "Content-Type": "application/json",
+        "X-Content-Type-Options": "nosniff",
+      },
+    });
+  } catch (error) {
+    // ========================================================================
+    // Step 5: Handle service-level errors
+    // ========================================================================
+    // Handle NotFoundError (flashcard doesn't exist or not owned by user)
+    if (error instanceof NotFoundError) {
+      return new Response(
+        JSON.stringify({
+          error: {
+            message: "Flashcard not found",
+            code: "FLASHCARD_NOT_FOUND",
+          },
+        }),
+        {
+          status: 404,
+          headers: { "Content-Type": "application/json" },
+        }
+      );
+    }
+
+    // Handle FlashcardService errors
+    if (error instanceof FlashcardServiceError) {
+      console.error("FlashcardService error in DELETE /api/flashcards/:id:", {
+        timestamp: new Date().toISOString(),
+        userId: locals.session?.user?.id ?? "unknown",
+        flashcardId: params.id,
+        message: error.message,
+        error,
+      });
+
+      return new Response(
+        JSON.stringify({
+          error: {
+            message: "An unexpected error occurred",
+            code: "INTERNAL_SERVER_ERROR",
+          },
+        }),
+        {
+          status: 500,
+          headers: { "Content-Type": "application/json" },
+        }
+      );
+    }
+
+    // Log unexpected errors
+    console.error("Unexpected error in DELETE /api/flashcards/:id:", {
       timestamp: new Date().toISOString(),
       userId: locals.session?.user?.id ?? "unknown",
       flashcardId: params.id,

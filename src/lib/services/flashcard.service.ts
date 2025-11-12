@@ -15,6 +15,16 @@ export class FlashcardServiceError extends Error {
 }
 
 /**
+ * Custom error for not found operations
+ */
+export class NotFoundError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "NotFoundError";
+  }
+}
+
+/**
  * Parameters for listing flashcards in a deck
  */
 export interface ListFlashcardsParams {
@@ -351,6 +361,65 @@ export class FlashcardService {
       // Log and wrap unexpected errors
       console.error("Unexpected error in updateFlashcard:", error);
       throw new FlashcardServiceError("Failed to update flashcard");
+    }
+  }
+
+  /**
+   * Delete a flashcard and all its associated review history
+   *
+   * Permanently removes a flashcard from the database with CASCADE deletion of reviews.
+   * Verifies flashcard ownership before deletion to prevent unauthorized access.
+   * This operation is idempotent - subsequent calls return NotFoundError.
+   *
+   * @param supabase - Authenticated Supabase client from context.locals
+   * @param flashcardId - UUID of the flashcard to delete
+   * @param userId - UUID of the authenticated user
+   * @returns Promise<void> on successful deletion
+   * @throws NotFoundError if flashcard doesn't exist or doesn't belong to user
+   * @throws FlashcardServiceError if database operation fails
+   */
+  async deleteFlashcard(supabase: SupabaseServerClient, flashcardId: string, userId: string): Promise<void> {
+    try {
+      // ========================================================================
+      // Step 1: Delete flashcard with ownership verification
+      // ========================================================================
+      // Using DELETE with RETURNING to verify the flashcard existed and was deleted
+      // If no rows returned, flashcard not found or unauthorized
+      const { data, error } = await supabase
+        .from("flashcards")
+        .delete()
+        .eq("id", flashcardId)
+        .eq("user_id", userId)
+        .select("id")
+        .single();
+
+      // ========================================================================
+      // Step 2: Handle database errors
+      // ========================================================================
+      if (error || !data) {
+        // PGRST116 = PostgrestError: "JSON object requested, multiple (or no) rows returned"
+        // This means no rows were deleted (flashcard not found or unauthorized)
+        if (error?.code === "PGRST116") {
+          throw new NotFoundError("Flashcard not found");
+        }
+        throw error || new Error("Failed to delete flashcard");
+      }
+
+      // Successful deletion - CASCADE constraint automatically deleted related reviews
+    } catch (error) {
+      // Re-throw NotFoundError
+      if (error instanceof NotFoundError) {
+        throw error;
+      }
+
+      // Re-throw FlashcardServiceError
+      if (error instanceof FlashcardServiceError) {
+        throw error;
+      }
+
+      // Log and wrap unexpected errors
+      console.error("Unexpected error in deleteFlashcard:", error);
+      throw new FlashcardServiceError("Failed to delete flashcard");
     }
   }
 }
