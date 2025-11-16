@@ -1,5 +1,12 @@
 import type { createServerClient } from "@/db/supabase.client";
-import type { FlashcardDTO, PaginatedResponseDTO, CreateFlashcardCommand, UpdateFlashcardCommand } from "@/types";
+import type {
+  FlashcardDTO,
+  PaginatedResponseDTO,
+  CreateFlashcardCommand,
+  UpdateFlashcardCommand,
+  AcceptFlashcardsResponseDTO,
+  FlashcardCandidateDTO,
+} from "@/types";
 
 // Type alias for the per-request Supabase client
 type SupabaseServerClient = ReturnType<typeof createServerClient>;
@@ -53,6 +60,15 @@ export interface UpdateFlashcardParams {
   flashcardId: string;
   userId: string;
   command: UpdateFlashcardCommand;
+}
+
+/**
+ * Parameters for batch creating AI-generated flashcards
+ */
+export interface BatchCreateFlashcardsParams {
+  deckId: string;
+  userId: string;
+  candidates: FlashcardCandidateDTO[];
 }
 
 /**
@@ -361,6 +377,98 @@ export class FlashcardService {
       // Log and wrap unexpected errors
       console.error("Unexpected error in updateFlashcard:", error);
       throw new FlashcardServiceError("Failed to update flashcard");
+    }
+  }
+
+  /**
+   * Batch create AI-generated flashcards in a deck
+   *
+   * Creates multiple flashcards with is_ai_generated=true and default spaced repetition values.
+   * Verifies deck ownership before creation.
+   * Uses batch insert for efficiency - all flashcards created atomically.
+   *
+   * @param supabase - Authenticated Supabase client from context.locals
+   * @param params - BatchCreateFlashcardsParams containing deck ID, user ID, and flashcard candidates
+   * @returns AcceptFlashcardsResponseDTO with created flashcards and count
+   * @throws Error with 'DECK_NOT_FOUND' message if deck doesn't exist or doesn't belong to user
+   * @throws FlashcardServiceError if database operation fails
+   */
+  async batchCreateFlashcards(
+    supabase: SupabaseServerClient,
+    params: BatchCreateFlashcardsParams
+  ): Promise<AcceptFlashcardsResponseDTO> {
+    const { deckId, userId, candidates } = params;
+
+    try {
+      // ========================================================================
+      // Step 1: Verify deck ownership
+      // ========================================================================
+      const { data: deck, error: deckError } = await supabase
+        .from("decks")
+        .select("id")
+        .eq("id", deckId)
+        .eq("user_id", userId)
+        .maybeSingle();
+
+      if (deckError) {
+        throw new FlashcardServiceError(`Failed to verify deck ownership: ${deckError.message}`);
+      }
+
+      if (!deck) {
+        throw new Error("DECK_NOT_FOUND");
+      }
+
+      // ========================================================================
+      // Step 2: Prepare batch insert data
+      // ========================================================================
+      const flashcardsToInsert = candidates.map((candidate) => ({
+        deck_id: deckId,
+        user_id: userId,
+        front: candidate.front,
+        back: candidate.back,
+        is_ai_generated: true,
+        // Default values are set by database:
+        // - next_review_date: current_date
+        // - ease_factor: 2.5
+        // - interval_days: 0
+        // - repetitions: 0
+      }));
+
+      // ========================================================================
+      // Step 3: Batch insert flashcards
+      // ========================================================================
+      const { data: createdFlashcards, error: insertError } = await supabase
+        .from("flashcards")
+        .insert(flashcardsToInsert)
+        .select(
+          "id, deck_id, front, back, is_ai_generated, next_review_date, ease_factor, interval_days, repetitions, created_at, updated_at"
+        );
+
+      if (insertError) {
+        throw new FlashcardServiceError(`Failed to create flashcards: ${insertError.message}`);
+      }
+
+      // ========================================================================
+      // Step 4: Build and return response DTO
+      // ========================================================================
+      return {
+        created: createdFlashcards as FlashcardDTO[],
+        total_created: createdFlashcards.length,
+      };
+    } catch (error) {
+      // Re-throw known errors (DECK_NOT_FOUND)
+      if (error instanceof Error && error.message === "DECK_NOT_FOUND") {
+        throw error;
+      }
+
+      // Re-throw FlashcardServiceError
+      if (error instanceof FlashcardServiceError) {
+        throw error;
+      }
+
+      // Log and wrap unexpected errors
+      console.error("Unexpected error in batchCreateFlashcards:", error);
+      throw new FlashcardServiceError("Failed to batch create flashcards");
     }
   }
 
