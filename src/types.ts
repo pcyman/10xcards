@@ -376,3 +376,77 @@ export interface ReviewHistoryQueryParams {
   limit?: number;
   order?: "asc" | "desc";
 }
+
+// ============================================================================
+// AI Generation View Types
+// ============================================================================
+
+/**
+ * Character count validation state
+ * Used in: AiGenerationForm component
+ */
+export interface CharacterCountState {
+  count: number;
+  state: 'invalid-min' | 'valid' | 'invalid-max';
+  message: string;
+}
+
+/**
+ * Candidate with UI status tracking
+ * Used in: AiReviewFlow component
+ */
+export interface CandidateWithStatus extends FlashcardCandidateDTO {
+  id: string;
+  status: 'pending' | 'accepted' | 'discarded';
+}
+
+/**
+ * Props for AiGenerationForm component
+ */
+export interface AiGenerationFormProps {
+  deckId: string;
+  deckName: string;
+}
+
+/**
+ * Props for CharacterCounter component
+ */
+export interface CharacterCounterProps {
+  count: number;
+  state: 'invalid-min' | 'valid' | 'invalid-max';
+  message: string;
+}
+
+/**
+ * Props for LoadingScreen component
+ */
+export interface LoadingScreenProps {
+  onCancel: () => void;
+}
+
+/**
+ * Props for AiReviewFlow component
+ */
+export interface AiReviewFlowProps {
+  deckId: string;
+  deckName: string;
+  initialCandidates: FlashcardCandidateDTO[];
+}
+
+/**
+ * Props for ReviewProgress component
+ */
+export interface ReviewProgressProps {
+  totalCount: number;
+  remainingCount: number;
+  acceptedCount: number;
+}
+
+/**
+ * Props for AiCandidateCard component
+ */
+export interface AiCandidateCardProps {
+  candidate: CandidateWithStatus;
+  onAccept: (id: string) => void;
+  onDiscard: (id: string) => void;
+}

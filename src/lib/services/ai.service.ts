@@ -161,6 +161,8 @@ ${text}`;
         throw new ServiceUnavailableError("Request timeout");
       }
 
+      console.log(error);
+
       throw new GenerationError("API request failed");
     }
   }

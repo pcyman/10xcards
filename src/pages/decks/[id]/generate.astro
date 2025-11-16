@@ -1,0 +1,22 @@
+---
+import Layout from "@/layouts/Layout.astro";
+import { AiGenerationFormWrapper } from "@/components/AiGenerationFormWrapper";
+
+export const prerender = false;
+
+const { id: deckId } = Astro.params;
+
+// Validate UUID format
+const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+if (!deckId || !uuidRegex.test(deckId)) {
+  return Astro.redirect('/decks');
+}
+
+// Note: Authentication and deck validation are handled client-side
+---
+
+<Layout title="Generate Flashcards">
+  <main class="container mx-auto px-4 py-8">
+    <AiGenerationFormWrapper client:only="react" deckId={deckId} />
+  </main>
+</Layout>
