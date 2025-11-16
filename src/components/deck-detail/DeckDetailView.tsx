@@ -1,6 +1,8 @@
 import { useState, useCallback, useEffect } from "react";
 import { Toaster } from "@/components/ui/sonner";
 import { toast } from "sonner";
+import { ArrowLeft } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { DeckHeader } from "./DeckHeader";
 import { FlashcardList } from "./FlashcardList";
 import { EmptyDeckState } from "./EmptyDeckState";
@@ -265,6 +267,16 @@ function DeckDetailViewContent({ deck, flashcardsData, deckId }: DeckDetailViewC
     <>
       <Toaster />
       <div className="container mx-auto max-w-4xl px-4 py-8">
+        {/* Back Button */}
+        <div className="mb-6">
+          <Button variant="ghost" size="sm" asChild>
+            <a href="/" className="inline-flex items-center gap-2">
+              <ArrowLeft className="size-4" />
+              Back to Decks
+            </a>
+          </Button>
+        </div>
+
         {/* Deck Header */}
         <DeckHeader
           deck={deckState}
