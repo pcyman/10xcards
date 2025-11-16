@@ -42,16 +42,19 @@ export class AIService {
    */
   async generateFlashcards(text: string): Promise<FlashcardCandidateDTO[]> {
     try {
-      // TODO: Replace with actual OpenRouter.ai API call
-      // For now, return mock data
-      return this.mockGenerateFlashcards(text);
+      const response = await this.callOpenRouterAPI(text);
+      const candidates = this.parseResponse(response);
 
-      // Future implementation:
-      // const response = await this.callOpenRouterAPI(text)
-      // const candidates = this.parseResponse(response)
-      // return candidates
+      if (candidates.length < 5) {
+        throw new GenerationError("Generated fewer than 5 flashcards");
+      }
+
+      return candidates;
     } catch (error) {
       if (error instanceof ServiceUnavailableError) {
+        throw error;
+      }
+      if (error instanceof GenerationError) {
         throw error;
       }
       throw new GenerationError("Failed to generate flashcards");
@@ -169,12 +172,27 @@ ${text}`;
    */
   private parseResponse(response: unknown): FlashcardCandidateDTO[] {
     try {
-      // TODO: Implement proper response parsing with validation
-      // This is a placeholder for future implementation
-      const data = response as { flashcards: FlashcardCandidateDTO[] };
+      const apiResponse = response as {
+        choices?: Array<{
+          message?: {
+            content?: string;
+          };
+        }>;
+      };
+
+      if (!apiResponse.choices || !Array.isArray(apiResponse.choices) || apiResponse.choices.length === 0) {
+        throw new GenerationError("Invalid API response format");
+      }
+
+      const content = apiResponse.choices[0]?.message?.content;
+      if (!content || typeof content !== "string") {
+        throw new GenerationError("Missing content in API response");
+      }
+
+      const data = JSON.parse(content) as { flashcards: FlashcardCandidateDTO[] };
 
       if (!data.flashcards || !Array.isArray(data.flashcards)) {
-        throw new GenerationError("Invalid response format");
+        throw new GenerationError("Invalid flashcards format");
       }
 
       // Filter and validate candidates
@@ -194,7 +212,10 @@ ${text}`;
         }));
 
       return validCandidates;
-    } catch {
+    } catch (error) {
+      if (error instanceof GenerationError) {
+        throw error;
+      }
       throw new GenerationError("Failed to parse AI response");
     }
   }
