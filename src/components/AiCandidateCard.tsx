@@ -26,24 +26,48 @@ export const AiCandidateCard = React.memo(function AiCandidateCard({
   };
 
   const isProcessed = candidate.status !== 'pending';
+  const isAccepted = candidate.status === 'accepted';
+  const isDiscarded = candidate.status === 'discarded';
 
   return (
     <article
       tabIndex={0}
       onKeyDown={handleKeyDown}
-      className={`transition-opacity duration-300 ${
-        isProcessed ? 'opacity-0 pointer-events-none' : 'opacity-100'
-      }`}
+      className="transition-all duration-300"
       aria-label="Flashcard candidate"
     >
-      <Card className="focus-within:ring-2 focus-within:ring-blue-500">
+      <Card className={`focus-within:ring-2 focus-within:ring-blue-500 relative ${
+        isAccepted ? 'border-2 border-green-500 bg-green-50' :
+        isDiscarded ? 'border-2 border-gray-400 bg-gray-50' :
+        ''
+      }`}>
+        {isAccepted && (
+          <div className="absolute top-4 right-4 bg-green-600 text-white px-3 py-1 rounded-full text-sm font-semibold flex items-center gap-1">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            </svg>
+            Accepted
+          </div>
+        )}
+        {isDiscarded && (
+          <div className="absolute top-4 right-4 bg-gray-600 text-white px-3 py-1 rounded-full text-sm font-semibold flex items-center gap-1">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+            Discarded
+          </div>
+        )}
         <CardHeader>
-          <h3 className="text-lg font-bold" id={`card-front-${candidate.id}`}>
+          <h3 className={`text-lg font-bold ${isProcessed ? 'pr-24' : ''}`} id={`card-front-${candidate.id}`}>
             {candidate.front}
           </h3>
         </CardHeader>
         <CardContent className="max-h-[200px] overflow-y-auto">
-          <p className="text-gray-700 whitespace-pre-wrap">
+          <p className={`whitespace-pre-wrap ${
+            isAccepted ? 'text-gray-800' :
+            isDiscarded ? 'text-gray-500' :
+            'text-gray-700'
+          }`}>
             {candidate.back}
           </p>
         </CardContent>
