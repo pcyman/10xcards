@@ -1,10 +1,33 @@
----
-// Redirect based on authentication status from middleware
-if (Astro.locals.session) {
-  // Authenticated user -> redirect to decks
-  return Astro.redirect("/decks");
-}
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Redirecting...</title>
+  </head>
+  <body>
+    <script is:inline>
+      // Check for session in localStorage
+      const sessionStr = localStorage.getItem("session");
 
-// Unauthenticated user -> redirect to login
-return Astro.redirect("/login");
----
+      if (sessionStr) {
+        try {
+          const session = JSON.parse(sessionStr);
+          // If there's a valid session with access token, redirect to decks
+          if (session.access_token) {
+            window.location.href = "/decks";
+          } else {
+            // Invalid session, redirect to login
+            window.location.href = "/login";
+          }
+        } catch {
+          // Failed to parse session, redirect to login
+          window.location.href = "/login";
+        }
+      } else {
+        // No session found, redirect to login
+        window.location.href = "/login";
+      }
+    </script>
+  </body>
+</html>
