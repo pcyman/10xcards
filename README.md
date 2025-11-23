@@ -60,6 +60,15 @@ The MVP aims to achieve:
   - Financial limits on API keys
   - Flexible model selection
 
+### Testing
+
+- **Vitest**: Fast, Vite-native test runner for unit and integration tests
+- **React Testing Library**: Component testing from user perspective
+- **Playwright**: Cross-browser end-to-end testing with SSR support
+- **axe-core**: Automated accessibility testing (WCAG 2.1 compliance)
+- **MSW (Mock Service Worker)**: API mocking for OpenRouter.ai and Supabase
+- **Lighthouse CI**: Automated performance and accessibility auditing
+
 ### CI/CD and Hosting
 
 - **GitHub Actions**: Automated CI/CD pipelines
@@ -127,6 +136,16 @@ npm run build        # Build for production
 npm run lint         # Run ESLint to check for issues
 npm run lint:fix     # Auto-fix ESLint issues
 npm run format       # Format code with Prettier
+```
+
+### Testing
+
+```bash
+npm run test              # Run unit and integration tests
+npm run test:watch        # Run tests in watch mode
+npm run test:coverage     # Run tests with coverage report
+npm run test:e2e          # Run end-to-end tests with Playwright
+npm run test:e2e:ui       # Run E2E tests with Playwright UI
 ```
 
 ### Pre-commit Hooks
@@ -209,6 +228,7 @@ This is currently a personal project developed as an MVP. Contributions are not 
 - [CLAUDE.md](./CLAUDE.md) - Detailed development guidelines for Claude Code
 - [Product Requirements Document](./.ai/prd.md) - Complete product specifications
 - [Tech Stack Details](./.ai/tech-stack.md) - Technology choices and rationale
+- [Test Plan](./.ai/test-plan.md) - Comprehensive testing strategy and test scenarios
 
 ## Support
 
